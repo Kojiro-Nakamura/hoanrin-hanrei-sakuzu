@@ -1,3 +1,5 @@
+import pc from 'polygon-clipping';
+
 export const lon2tile = (lon, zoom) => Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
 export const lat2tile = (lat, zoom) => Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
 export const tile2lon = (x, z) => (x / Math.pow(2, z) * 360 - 180);
@@ -27,8 +29,26 @@ export const parsePathToRings = (pathStr) => {
       i += 1;
     } else { i += 1; }
   }
-  if (currentRing.length > 0) rings.push(currentRing);
   return rings;
+};
+
+export const getExteriorPathString = (pathStr) => {
+  if (!pathStr.includes('Z')) return pathStr;
+  const rings = parsePathToRings(pathStr);
+  if (rings.length <= 1) return pathStr;
+  
+  let maxArea = -1;
+  let extRing = null;
+  rings.forEach(ring => {
+    const area = Math.abs(signedArea(ring));
+    if (area > maxArea) {
+      maxArea = area;
+      extRing = ring;
+    }
+  });
+  
+  if (!extRing) return pathStr;
+  return 'M ' + extRing.map(p => `${p.x} ${p.y}`).join(' L ') + ' Z';
 };
 
 export const multiPolyToPath = (mp) => {
@@ -232,4 +252,138 @@ export const removeSelfIntersections = (pts, isClosed) => {
     }
   }
   return result;
+};
+
+export const splitPolygons = (targetPolygons, splitLinePts, thickness = 0.05) => {
+  const splitterBoxes = [];
+  for (let i = 0; i < splitLinePts.length - 1; i++) {
+    const p1 = splitLinePts[i];
+    const p2 = splitLinePts[i+1];
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const len = Math.hypot(dx, dy);
+    if (len === 0) continue;
+    const nx = -dy / len * thickness;
+    const ny = dx / len * thickness;
+    const ex = dx / len * thickness;
+    const ey = dy / len * thickness;
+
+    splitterBoxes.push([[
+      [p1.x - ex + nx, p1.y - ey + ny],
+      [p2.x + ex + nx, p2.y + ey + ny],
+      [p2.x + ex - nx, p2.y + ey - ny],
+      [p1.x - ex - nx, p1.y - ey - ny],
+      [p1.x - ex + nx, p1.y - ey + ny]
+    ]]);
+  }
+
+  if (splitterBoxes.length === 0) return [];
+  const splitResults = [];
+  
+  targetPolygons.forEach(poly => {
+    if (!poly.pathData || poly.isClosed === false) return;
+    const rings = parsePathToRings(poly.pathData);
+    if (rings.length === 0) return;
+    
+    const polyCoords = rings.map(ring => ring.map(p => [p.x, p.y]));
+    
+    try {
+      const diff = pc.difference([polyCoords], ...splitterBoxes);
+      if (diff.length > 1) {
+        const newPolys = [];
+        diff.forEach((geom, idx) => {
+          let pathData = "";
+          const allRings = [];
+          geom.forEach(ring => {
+            const mappedRing = ring.map(coord => ({ x: Number(coord[0].toFixed(3)), y: Number(coord[1].toFixed(3)) }));
+            if (mappedRing.length > 1) {
+              const first = mappedRing[0], last = mappedRing[mappedRing.length - 1];
+              if (Math.abs(first.x - last.x) < 0.005 && Math.abs(first.y - last.y) < 0.005) {
+                mappedRing.pop();
+              }
+            }
+            if (mappedRing.length > 0) {
+              pathData += "M " + mappedRing.map(p => `${p.x} ${p.y}`).join(" L ") + " Z ";
+              allRings.push(mappedRing);
+            }
+          });
+          if (pathData.trim() !== "") {
+            newPolys.push({
+              ...poly,
+              id: poly.id + '_split_' + idx + '_' + Date.now().toString(),
+              pathData: pathData.trim(),
+              center: calculatePolygonCenter(allRings),
+              isModified: true
+            });
+          }
+        });
+        splitResults.push({ originalId: poly.id, newPolys });
+      }
+    } catch (e) {
+      console.warn("Polygon splitting failed for poly", poly.id, e);
+    }
+  });
+
+  return splitResults;
+};
+
+export const punchHoleInPolygons = (targetPolygons, holePts) => {
+  if (holePts.length < 3) return [];
+  const ring = holePts.map(p => [p.x, p.y]);
+  const first = ring[0], last = ring[ring.length - 1];
+  if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]]);
+  
+  const cutPolyB = [[ring]];
+  
+  const getBBox = (pts) => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    pts.forEach(p => {
+      minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]);
+      minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]);
+    });
+    return { minX, minY, maxX, maxY };
+  };
+  
+  const isBBoxIntersect = (b1, b2) => !(b2.minX > b1.maxX || b2.maxX < b1.minX || b2.minY > b1.maxY || b2.maxY < b1.minY);
+  const cutBBox = getBBox(ring);
+  const punchResults = [];
+
+  targetPolygons.forEach(poly => {
+    if (!poly.pathData || poly.isClosed === false) return;
+    const rings = parsePathToRings(poly.pathData).map(r => r.map(pt => [pt.x, pt.y]));
+    if (rings.length === 0 || rings[0].length === 0) return;
+    
+    const pBBox = getBBox(rings[0]);
+    if (!isBBoxIntersect(pBBox, cutBBox)) return;
+
+    try {
+      if (pc.intersection([rings], cutPolyB).length === 0) return;
+      const diffResult = pc.difference([rings], cutPolyB);
+      
+      if (diffResult.length > 0) {
+        let pathData = "";
+        const allRings = [];
+        diffResult.forEach(geom => {
+          geom.forEach(ring => {
+            const mappedRing = ring.map(coord => ({ x: Number(coord[0].toFixed(3)), y: Number(coord[1].toFixed(3)) }));
+            if (mappedRing.length > 1) {
+              const f = mappedRing[0], l = mappedRing[mappedRing.length - 1];
+              if (Math.abs(f.x - l.x) < 0.005 && Math.abs(f.y - l.y) < 0.005) mappedRing.pop();
+            }
+            if (mappedRing.length > 0) {
+              pathData += "M " + mappedRing.map(p => `${p.x} ${p.y}`).join(" L ") + " Z ";
+              allRings.push(mappedRing);
+            }
+          });
+        });
+        if (pathData.trim() !== "") {
+          punchResults.push({ originalId: poly.id, newPoly: { ...poly, pathData: pathData.trim(), center: calculatePolygonCenter(allRings), isModified: true } });
+        }
+      }
+    } catch (e) {
+      console.warn("Polygon difference failed", e);
+    }
+  });
+
+  return punchResults;
 };

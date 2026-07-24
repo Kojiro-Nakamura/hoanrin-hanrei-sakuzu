@@ -7,6 +7,15 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        const div = document.createElement('div');
+        div.style.position = 'fixed'; div.style.top = '0'; div.style.left = '0';
+        div.style.background = 'red'; div.style.color = 'white'; div.style.zIndex = '9999';
+        div.style.padding = '10px'; div.innerHTML = 'ERROR: ' + message + '<br>' + (error && error.stack);
+        document.body.appendChild(div);
+      };
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

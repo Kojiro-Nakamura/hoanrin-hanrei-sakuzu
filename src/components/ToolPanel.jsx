@@ -24,6 +24,14 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           <br/><span className="text-[10px] opacity-80">{mode === 'select' ? '（複数選択できます）' : mode === 'edit_deco' ? '（緑のハンドルで回転・拡縮、Deleteで削除）' : '（同じ点クリック・Enterで完了、右クリックで戻る）'}</span>
         </span>
       </p>
+      {selectedPolygons.length > 0 && mode === 'select' && (
+        <button 
+          onClick={onClearSelection} 
+          className="mt-2 w-full py-1.5 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded shadow transition-colors text-xs flex items-center justify-center gap-1"
+        >
+          選択をすべて解除
+        </button>
+      )}
     </div>
 
     <div className="flex flex-col gap-3 shrink-0">

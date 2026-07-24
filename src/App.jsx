@@ -3,7 +3,7 @@ import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Downl
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
 import { openDB, saveToDB, loadFromDB } from './utils/db';
-import { lon2tile, lat2tile, tile2lon, tile2lat, parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections } from './utils/geometry';
+import { lon2tile, lat2tile, tile2lon, tile2lat, parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, splitPolygons, punchHoleInPolygons, getExteriorPathString } from './utils/geometry';
 import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath } from './utils/dxf';
 import { processRingData, offsetRingByEdges, samplePath, generateOffsetRings, generateDecorations, buildConnectedPath, extractExteriorPath, parseMojXml } from './utils/dataProcessing';
 import { usePanZoom } from './hooks/usePanZoom';
@@ -91,21 +91,79 @@ export default function App() {
         if (ring.length > 0) segments.push([{ x: ring[ring.length-1].x, y: ring[ring.length-1].y }, { x: ring[0].x, y: ring[0].y }]);
       });
     });
+    if (data?.lines) {
+      data.lines.forEach(line => {
+        line.forEach(pt => pts.push({ x: pt.x, y: pt.y }));
+        for(let i=0; i<line.length-1; i++) segments.push([{ x: line[i].x, y: line[i].y }, { x: line[i+1].x, y: line[i+1].y }]);
+      });
+    }
     return { pts, segments };
-  }, [currentPolygons]);
+  }, [currentPolygons, data?.lines]);
 
-  const finishDrawing = useCallback(() => {
-    if (drawingPts.length < 3) { setDrawingPts([]); return; }
-    const isClockwise = signedArea(drawingPts) > 0;
-    const ring = isClockwise ? drawingPts : [...drawingPts].reverse();
-    const newPath = "M " + ring.map(p => `${p.x} ${p.y}`).join(" L ") + " Z";
+  const finishDrawing = useCallback((forceClose = true) => {
+    // If closing, need 3 points. If open line, need 2 points.
+    if (forceClose && drawingPts.length < 3) { setDrawingPts([]); return; }
+    if (!forceClose && drawingPts.length < 2) { setDrawingPts([]); return; }
+
+    let newPath = "";
+    let center = { x: 0, y: 0 };
+    if (forceClose) {
+      const isClockwise = signedArea(drawingPts) > 0;
+      const ring = isClockwise ? drawingPts : [...drawingPts].reverse();
+      newPath = "M " + ring.map(p => `${p.x} ${p.y}`).join(" L ") + " Z";
+      center = calculatePolygonCenter([ring]);
+    } else {
+      newPath = "M " + drawingPts.map(p => `${p.x} ${p.y}`).join(" L ");
+      const mid = Math.floor(drawingPts.length / 2);
+      center = { x: drawingPts[mid].x, y: drawingPts[mid].y };
+    }
+
     const actionId = Date.now().toString();
     const newPoly = {
-      id: 'custom_' + actionId, chiban: '作図(面)', pathData: newPath, center: calculatePolygonCenter([ring]), curves: null, isCustom: true, splitGroupId: actionId
+      id: 'custom_' + actionId, chiban: forceClose ? '作図(面)' : '作図(線)', pathData: newPath, center, curves: null, isCustom: true, isClosed: forceClose, splitGroupId: actionId
     };
-    commitChange([...currentPolygons, newPoly], currentAppliedGroups);
+    
+    let nextPolygons = [...currentPolygons];
+    const newSelectedIds = [];
+    
+    if (!forceClose) {
+      // split polygons (both custom and XML)
+      const targetPolys = nextPolygons.filter(p => p.isClosed !== false);
+      const thickness = (viewBox && viewBox.w) ? viewBox.w / 2000 : 0.05;
+      const splitResults = splitPolygons(targetPolys, drawingPts, thickness);
+      
+      if (splitResults.length > 0) {
+        splitResults.forEach(res => {
+          // Remove original
+          nextPolygons = nextPolygons.filter(p => p.id !== res.originalId);
+          // Add split parts
+          nextPolygons.push(...res.newPolys);
+          newSelectedIds.push(...res.newPolys.map(p => p.id));
+        });
+        // Since we split successfully, don't add the line itself
+        commitChange(nextPolygons, currentAppliedGroups);
+        setDrawingPts([]); setMode('select'); setSelectedPolygons(newSelectedIds);
+        return;
+      }
+    } else {
+      // Punch hole in underlying polygons
+      const targetPolys = nextPolygons.filter(p => p.isClosed !== false);
+      const punchResults = punchHoleInPolygons(targetPolys, drawingPts);
+      if (punchResults.length > 0) {
+        punchResults.forEach(res => {
+          // Remove original
+          nextPolygons = nextPolygons.filter(p => p.id !== res.originalId);
+          // Add punched polygon
+          nextPolygons.push(res.newPoly);
+        });
+      }
+    }
+
+    // Default: just add the newly drawn poly/line
+    nextPolygons.push(newPoly);
+    commitChange(nextPolygons, currentAppliedGroups);
     setDrawingPts([]); setMode('select'); setSelectedPolygons([newPoly.id]);
-  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons]);
+  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons, viewBox]);
 
   const handleDecoMouseDown = useCallback((e, groupId, deco, dragMode) => {
     setActiveDeco({ type: 'deco', groupId, decoId: deco.id });
@@ -142,19 +200,57 @@ export default function App() {
           setDragChibanOverride({ polyId: activeDeco.id, scale });
         }
       }
-    } else if (mode === 'draw' && drawingPts.length > 0) {
-      const firstPt = drawingPts[0];
-      const distToFirst = Math.sqrt((pt.x - firstPt.x)**2 + (pt.y - firstPt.y)**2);
-      let closest = null, minDistSq = Infinity;
-      let isVertexSnapped = false;
-      snapData.pts.forEach(p => { const distSq = (p.x - pt.x)**2 + (p.y - pt.y)**2; if (distSq < minDistSq) { minDistSq = distSq; closest = p; isVertexSnapped = true; }});
-      if (distToFirst < viewBox.w / 50 && (!closest || minDistSq > (distToFirst**2))) {
-         setSnappedPt(firstPt); return;
+    } else if (mode === 'draw') {
+      const snapRadius = viewBox.w / 60;
+      const snapRadiusSq = snapRadius * snapRadius;
+      
+      const firstPt = drawingPts.length > 0 ? drawingPts[0] : null;
+      const distToFirstSq = firstPt ? (pt.x - firstPt.x)**2 + (pt.y - firstPt.y)**2 : Infinity;
+      
+      const candidatePts = [];
+
+      // 1. Existing Vertices
+      snapData.pts.forEach(p => {
+        const distSq = (p.x - pt.x)**2 + (p.y - pt.y)**2;
+        if (distSq < snapRadiusSq) candidatePts.push({ x: p.x, y: p.y, distSq, type: 'vertex' });
+      });
+
+      // 2. Filter Segments and Compute Intersections
+      const nearbySegments = snapData.segments.filter(seg => {
+        const minX = Math.min(seg[0].x, seg[1].x) - snapRadius;
+        const maxX = Math.max(seg[0].x, seg[1].x) + snapRadius;
+        const minY = Math.min(seg[0].y, seg[1].y) - snapRadius;
+        const maxY = Math.max(seg[0].y, seg[1].y) + snapRadius;
+        return pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+      });
+
+      for (let i = 0; i < nearbySegments.length; i++) {
+        for (let j = i + 1; j < nearbySegments.length; j++) {
+          const inter = getSegmentIntersection(nearbySegments[i][0], nearbySegments[i][1], nearbySegments[j][0], nearbySegments[j][1]);
+          if (inter && inter.onSegment1 && inter.onSegment2) {
+            const distSq = (inter.x - pt.x)**2 + (inter.y - pt.y)**2;
+            if (distSq < snapRadiusSq) candidatePts.push({ x: inter.x, y: inter.y, distSq, type: 'intersection' });
+          }
+        }
       }
-      if (!isVertexSnapped) {
-        snapData.segments.forEach(seg => { const res = getClosestPointOnSegment(pt, seg[0], seg[1]); if (res.distSq < minDistSq) { minDistSq = res.distSq; closest = { x: res.x, y: res.y }; }});
+
+      if (firstPt && distToFirstSq < snapRadiusSq) {
+        setSnappedPt({ ...firstPt, type: 'start' });
+      } else if (candidatePts.length > 0) {
+        candidatePts.sort((a, b) => a.distSq - b.distSq);
+        setSnappedPt(candidatePts[0]);
+      } else {
+        // 3. Edges
+        let closestEdgePt = null, minEdgeDistSq = snapRadiusSq;
+        nearbySegments.forEach(seg => {
+          const res = getClosestPointOnSegment(pt, seg[0], seg[1]);
+          if (res.distSq < minEdgeDistSq) {
+            minEdgeDistSq = res.distSq;
+            closestEdgePt = { x: res.x, y: res.y, type: 'edge' };
+          }
+        });
+        setSnappedPt(closestEdgePt);
       }
-      setSnappedPt((closest && minDistSq < (viewBox.w / 80)**2) ? closest : null);
     } else {
       setSnappedPt(null);
     }
@@ -178,8 +274,8 @@ export default function App() {
     if (wasDragged(e)) return;
     if (mode === 'draw') {
       const pt = getSvgPoint(e); if (!pt) return;
-      if (drawingPts.length >= 3 && snappedPt && snappedPt.x === drawingPts[0].x && snappedPt.y === drawingPts[0].y) {
-        finishDrawing();
+      if (drawingPts.length >= 3 && snappedPt && snappedPt.type === 'start') {
+        finishDrawing(true);
       } else {
         setDrawingPts(prev => [...prev, snappedPt || pt]);
       }
@@ -187,7 +283,11 @@ export default function App() {
   }, [mode, wasDragged, snappedPt, getSvgPoint, drawingPts, finishDrawing]);
 
   const handleSvgContextMenu = useCallback((e) => { e.preventDefault(); e.stopPropagation(); if (mode === 'draw') setDrawingPts(prev => prev.length > 0 ? prev.slice(0, -1) : []); }, [mode]);
-  const handlePolygonClick = (e, id) => { e.stopPropagation(); if (wasDragged(e)) return; setSelectedPolygons(prev => prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]); };
+  const handlePolygonClick = (e, id) => {
+    e.stopPropagation();
+    if (wasDragged(e)) return;
+    setSelectedPolygons(prev => prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]);
+  };
 
   useEffect(() => { 
     setDrawingPts([]); setSnappedPt(null); 
@@ -204,7 +304,7 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') { setDrawingPts([]); setMode('select'); }
-      if (e.key === 'Enter' && mode === 'draw') finishDrawing();
+      if (e.key === 'Enter' && mode === 'draw') finishDrawing(false);
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); }
       if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); handleRedo(); }
       if (e.key === 'Delete' || e.key === 'Backspace') {
@@ -270,9 +370,21 @@ export default function App() {
 
       return (
         <g key={`poly-${poly.id}`}>
-          {isCustom && <path d={poly.pathData} fill="rgba(16, 185, 129, 0.05)" stroke="#10b981" strokeWidth={viewBox.w / 800} pointerEvents="none" fillRule="evenodd"/>}
+          {isCustom && <path d={poly.pathData} fill={poly.isClosed === false ? "none" : "rgba(16, 185, 129, 0.05)"} stroke="#10b981" strokeWidth={viewBox.w / 800} pointerEvents="none" fillRule="evenodd"/>}
           {!isCustom && (!poly.curves || poly.isModified) && <path d={poly.pathData} fill="none" stroke="#10b981" strokeWidth={viewBox.w / 1000} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" fillRule="evenodd" opacity={0.8} />}
-          {(isSelected || isHovered) && <path d={poly.pathData} pointerEvents="none" fill={isSelected ? "rgba(234, 179, 8, 0.4)" : "rgba(234, 179, 8, 0.2)"} stroke={isSelected ? "#ca8a04" : "rgba(234, 179, 8, 0.6)"} strokeWidth={viewBox.w / 800} fillRule="evenodd" />}
+          {/* Selection Highlight */}
+          {(isSelected || isHovered) && (
+            <path 
+              d={poly.pathData} 
+              pointerEvents="none" 
+              fill={poly.isClosed === false ? "none" : (isSelected ? "rgba(234, 179, 8, 0.4)" : "rgba(234, 179, 8, 0.2)")} 
+              stroke={isSelected ? "#ca8a04" : "rgba(234, 179, 8, 0.6)"} 
+              strokeWidth={isSelected ? viewBox.w / 300 : viewBox.w / 600} 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              fillRule="evenodd" 
+            />
+          )}
           
           {drawLabel && (() => {
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0), scaledFontSize = labelFontSize * (override.scale || 1.0);
@@ -318,20 +430,39 @@ export default function App() {
                </g>
              );
           })()}
-          <path d={poly.pathData} fill="transparent" stroke="none" strokeWidth={viewBox.w / 100} className={`${mode === 'select' ? 'cursor-pointer' : 'cursor-crosshair'} outline-none`} fillRule="evenodd" onMouseEnter={() => { if(mode === 'select') setHoveredPolygon(poly.id); }} onMouseLeave={() => setHoveredPolygon(null)} onClick={(e) => { if(mode === 'select') handlePolygonClick(e, poly.id); }} pointerEvents={mode === 'edit_deco' ? 'none' : 'auto'} />
+          <path 
+            d={poly.pathData} 
+            fill={poly.isClosed === false ? "none" : "transparent"} 
+            stroke={poly.isClosed === false ? "transparent" : "none"} 
+            strokeWidth={poly.isClosed === false ? viewBox.w / 50 : viewBox.w / 100} 
+            className={`${mode === 'select' ? 'cursor-pointer' : 'cursor-crosshair'} outline-none`} 
+            fillRule="evenodd" 
+            onMouseEnter={() => { if(mode === 'select') setHoveredPolygon(poly.id); }} 
+            onMouseLeave={() => setHoveredPolygon(null)} 
+            onClick={(e) => { if(mode === 'select') handlePolygonClick(e, poly.id); }} 
+            pointerEvents={mode === 'edit_deco' ? 'none' : 'auto'} 
+          />
         </g>
       );
     });
   };
 
   const renderDrawingLayer = () => {
-    if (mode !== 'draw' || drawingPts.length === 0 || !mouseSvgPt) return null;
-    const isClosing = drawingPts.length >= 3 && snappedPt && snappedPt.x === drawingPts[0].x && snappedPt.y === drawingPts[0].y;
+    if (mode !== 'draw' || !mouseSvgPt) return null;
+    const isClosing = drawingPts.length >= 3 && snappedPt && snappedPt.type === 'start';
     return (
       <g>
-        <path d={`M ${drawingPts[0].x} ${drawingPts[0].y} ` + drawingPts.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') + ` L ${snappedPt ? snappedPt.x : mouseSvgPt.x} ${snappedPt ? snappedPt.y : mouseSvgPt.y} ` + (isClosing ? 'Z' : '')} fill={isClosing ? "rgba(16, 185, 129, 0.2)" : "none"} stroke="#10b981" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+        {drawingPts.length > 0 && <path d={`M ${drawingPts[0].x} ${drawingPts[0].y} ` + drawingPts.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') + ` L ${snappedPt ? snappedPt.x : mouseSvgPt.x} ${snappedPt ? snappedPt.y : mouseSvgPt.y} ` + (isClosing ? 'Z' : '')} fill={isClosing ? "rgba(16, 185, 129, 0.2)" : "none"} stroke="#10b981" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />}
         {drawingPts.map((pt, i) => <circle key={`dpt-${i}`} cx={pt.x} cy={pt.y} r={viewBox.w / 400} fill="#10b981" pointerEvents="none" />)}
-        {snappedPt && <circle cx={snappedPt.x} cy={snappedPt.y} r={viewBox.w / 200} fill="none" stroke="#ef4444" strokeWidth={viewBox.w/300} pointerEvents="none" />}
+        {snappedPt && (
+          <g pointerEvents="none">
+            {snappedPt.type === 'start' && <circle cx={snappedPt.x} cy={snappedPt.y} r={viewBox.w / 150} fill="rgba(239, 68, 68, 0.2)" stroke="#ef4444" strokeWidth={viewBox.w/300} />}
+            {snappedPt.type === 'vertex' && <circle cx={snappedPt.x} cy={snappedPt.y} r={viewBox.w / 250} fill="rgba(59, 130, 246, 0.3)" stroke="#3b82f6" strokeWidth={viewBox.w/400} />}
+            {snappedPt.type === 'intersection' && <rect x={snappedPt.x - viewBox.w/300} y={snappedPt.y - viewBox.w/300} width={viewBox.w/150} height={viewBox.w/150} fill="rgba(168, 85, 247, 0.3)" stroke="#a855f7" strokeWidth={viewBox.w/400} transform={`rotate(45, ${snappedPt.x}, ${snappedPt.y})`} />}
+            {snappedPt.type === 'edge' && <circle cx={snappedPt.x} cy={snappedPt.y} r={viewBox.w / 400} fill="rgba(234, 179, 8, 0.5)" stroke="#ca8a04" strokeWidth={viewBox.w/500} />}
+            {!snappedPt.type && <circle cx={snappedPt.x} cy={snappedPt.y} r={viewBox.w / 200} fill="none" stroke="#ef4444" strokeWidth={viewBox.w/300} />}
+          </g>
+        )}
       </g>
     );
   };
@@ -388,11 +519,13 @@ export default function App() {
         {hasData && (
           <div className="absolute inset-0 w-full h-full">
             <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
-                 onMouseMove={panZoomHandlers.onMouseMove} onMouseUp={panZoomHandlers.onMouseUp} onMouseLeave={panZoomHandlers.onMouseLeave} onWheel={panZoomHandlers.onWheel}
-                 onMouseDown={(e) => {
-                   if (mode === 'select' || mode === 'edit_deco' || e.button === 1 || e.button === 2) { panZoomHandlers.onMouseDown(e); }
-                 }}
-                 onClick={handleSvgClick} onContextMenu={handleSvgContextMenu}>
+                 onMouseMove={(e) => { panZoomHandlers.onMouseMove(e); handleSvgMouseMove(e); }} 
+                 onMouseUp={(e) => { panZoomHandlers.onMouseUp(e); handleSvgMouseUp(e); }} 
+                 onMouseLeave={panZoomHandlers.onMouseLeave} onWheel={panZoomHandlers.onWheel}
+                 onMouseDown={panZoomHandlers.onMouseDown}
+                 onClick={handleSvgClick}
+                 onDoubleClick={(e) => { if (mode === 'draw') { e.stopPropagation(); finishDrawing(false); } }}
+                 onContextMenu={handleSvgContextMenu}>
               <defs>
                 <pattern id="grid" width={viewBox.w/20} height={viewBox.w/20} patternUnits="userSpaceOnUse">
                   <path d={`M ${viewBox.w/20} 0 L 0 0 0 ${viewBox.w/20}`} fill="none" stroke="rgba(0,0,0,0.05)" strokeWidth={viewBox.w/1000} />
