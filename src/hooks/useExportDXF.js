@@ -1,0 +1,138 @@
+import { useCallback } from 'react';
+import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath } from '../utils/dxf';
+import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
+
+export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, viewBox, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
+  const exportToDXF = useCallback(() => {
+    let dxf = "  0\nSECTION\n  2\nHEADER\n  0\nENDSEC\n  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nLAYER\n  70\n7\n";
+    
+    const addLayer = (name, color) => { dxf += `  0\nLAYER\n  2\n${name}\n 70\n0\n 62\n${color}\n  6\nCONTINUOUS\n`; };
+    addLayer("BASE_LINES", 8);
+    addLayer("POLYGONS", 3);
+    addLayer("POLYGONS_CUSTOM", 4);
+    addLayer("CHIBAN_LABELS", 7);
+    addLayer("REGION_LABELS", 7);
+    addLayer("REGION_LABELS_BG", 255);
+    addLayer("POLYGONS_STYLE", 4);
+    addLayer("POLYGONS_STYLE_INNER", 4);
+    addLayer("POLYGONS_STYLE_INNER2", 4);
+    addLayer("DECORATIONS_HIGE", 1);
+    addLayer("DECORATIONS_SHAPE", 5);
+    addLayer("LABELS", 7);
+    addLayer("LABELS_BG", 255);
+    addLayer("ORIGIN_CROSS", 1);
+    dxf += "  0\nENDTAB\n";
+
+    dxf += "  0\nTABLE\n  2\nBLOCK_RECORD\n  70\n1\n  0\nBLOCK_RECORD\n  2\n*Model_Space\n  0\nBLOCK_RECORD\n  2\n*Paper_Space\n";
+    
+    let polyEntitiesDxf = "";
+    let labelsEntitiesDxf = "";
+
+    const drawnLabels = new Set();
+    currentPolygons.forEach((poly, idx) => {
+      polyEntitiesDxf += dxfCreatePath(poly.pathData, poly.isCustom ? "POLYGONS_CUSTOM" : "POLYGONS", poly.isCustom ? 4 : 3);
+      if (poly.center) {
+        const labelKey = `${poly.center.x}_${poly.center.y}_${poly.chiban}`;
+        if (!drawnLabels.has(labelKey)) {
+          drawnLabels.add(labelKey);
+          
+          const override = currentChibanOverrides[poly.id] || { dx: 0, dy: 0, scale: 1.0, visible: true };
+          if (override.visible !== false) {
+             const labelBlockName = `LABEL_BLOCK_${idx}`;
+             dxf += `  0\nBLOCK_RECORD\n  2\n${labelBlockName}\n`;
+             
+             const fSize = (viewBox.w / 150) * decorationScale * 1.2 * override.scale;
+             const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
+             const insertCx = finalCx, insertCy = finalCy;
+             
+             let blockEntities = "";
+             if (poly.chimoku) {
+               const charW = fSize * 0.55, chibanW = poly.chiban.length * charW, circleR = fSize * 0.65, gap = fSize * 0.2, totalW = circleR * 2 + gap + chibanW;
+               const startX = -totalW / 2, circleCx = startX + circleR, textStartX = startX + circleR * 2 + gap;
+               const rectX = startX - fSize * 0.4, rectY = -fSize * 0.85, rectW = totalW + fSize * 0.8, rectH = fSize * 1.7;
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
+               blockEntities += `  0\nLWPOLYLINE\n  8\nLABELS\n 62\n${poly.isCustom ? 4 : 7}\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
+               blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
+               blockEntities += dxfCreateText(poly.chimoku, circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
+               blockEntities += dxfCreateText(poly.chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
+             } else {
+               const charW = fSize * 0.8, textW = poly.chiban.length * charW, rectW = textW + fSize, rectH = fSize * 1.5, rectX = -rectW / 2, rectY = -rectH / 2;
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
+               blockEntities += dxfCreateText(poly.chiban, 0, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
+             }
+             
+             dxf += `  0\nBLOCK\n  8\n0\n  2\n${labelBlockName}\n  70\n0\n  10\n0.0\n  20\n0.0\n  30\n0.0\n  3\n${labelBlockName}\n`;
+             dxf += blockEntities;
+             dxf += "  0\nENDBLK\n";
+             labelsEntitiesDxf += dxfCreateInsert(labelBlockName, insertCx, insertCy, 1.0, 0, "LABELS", 7);
+          }
+        }
+      }
+    });
+
+    regionLabels.forEach((region, idx) => {
+      if (!region.visible) return;
+      const textLines = [region.oaza ? `大字　${region.oaza}` : null, region.koaza ? `字　${region.koaza}` : null].filter(Boolean);
+      if (textLines.length === 0) return;
+      const fSize = (viewBox.w / 150) * decorationScale * 1.2 * 1.5 * region.scale;
+      const rectW = Math.max(...textLines.map(t => t.length)) * fSize + fSize, rectH = textLines.length * fSize * 1.2 + fSize * 0.4;
+      const rectX = -rectW / 2, rectY = -rectH / 2, regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
+      
+      dxf += `  0\nBLOCK_RECORD\n  2\n${regionBlockName}\n`;
+      dxf += `  0\nBLOCK\n  8\n0\n  2\n${regionBlockName}\n  70\n0\n  10\n0.0\n  20\n0.0\n  30\n0.0\n  3\n${regionBlockName}\n`;
+      dxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
+      dxf += `  0\nLWPOLYLINE\n  8\nREGION_LABELS\n 62\n7\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
+      textLines.forEach((line, i) => { dxf += dxfCreateText(line, -(line.length * fSize) / 2, -(textLines.length - 1) * (fSize * 1.2) / 2 + i * fSize * 1.2, fSize, "REGION_LABELS", 7); });
+      dxf += "  0\nENDBLK\n";
+      labelsEntitiesDxf += dxfCreateInsert(regionBlockName, region.cx, region.cy, 1.0, 0, "REGION_LABELS", 7);
+    });
+
+    dxf += "  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES\n";
+    dxf += `  0\nLINE\n  8\nORIGIN_CROSS\n 62\n1\n 10\n-50.0000\n 20\n0.0000\n 30\n0.0\n 11\n50.0000\n 21\n0.0000\n 31\n0.0\n  0\nLINE\n  8\nORIGIN_CROSS\n 62\n1\n 10\n0.0000\n 20\n-50.0000\n 30\n0.0\n 11\n0.0000\n 21\n50.0000\n 31\n0.0\n`;
+
+    lines.forEach(line => {
+      if (line.length < 2) return;
+      dxf += `  0\nLWPOLYLINE\n  8\nBASE_LINES\n 62\n8\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n${line.length}\n 70\n0\n`;
+      line.forEach(pt => { dxf += ` 10\n${pt.x.toFixed(4)}\n 20\n${(-pt.y).toFixed(4)}\n`; });
+    });
+
+    dxf += polyEntitiesDxf;
+
+    currentAppliedGroups.forEach(group => {
+      let lineColor = 4; 
+      const effLineStyle = group.lineStyleId || group.styleId;
+      if (['single', 'double', 'single_inner', 'double_inner', 'double_dashed', 'style1'].includes(effLineStyle)) lineColor = 1; 
+      else if (['yellow_thick', 'style4'].includes(effLineStyle)) lineColor = 2; 
+      else if (['dashdot', 'style3'].includes(effLineStyle)) lineColor = 3; 
+      else if (['dashed', 'style2'].includes(effLineStyle)) lineColor = 5; 
+      else if (['dotted', 'style5'].includes(effLineStyle)) lineColor = 6; 
+      
+      if (effLineStyle !== 'none') dxf += dxfCreatePath(group.pathData, "POLYGONS_STYLE", lineColor);
+      if (group.innerPathData) dxf += dxfCreatePath(group.innerPathData, "POLYGONS_STYLE_INNER", lineColor);
+      if (group.innerPathData2) dxf += dxfCreatePath(group.innerPathData2, "POLYGONS_STYLE_INNER2", lineColor);
+
+      if (group.decorations) {
+        group.decorations.forEach(d => {
+          if (d.type === 'circle') dxf += dxfCreateCircle(d.cx, d.cy, d.r, "DECORATIONS_SHAPE", 5);
+          else if (d.type === 'hige') dxf += dxfCreateInsert("DECO_HIGE", d.cx, d.cy, d.hLen, d.angle, "DECORATIONS_HIGE", 1);
+          else if (d.type === 'triangle') dxf += dxfCreateInsert("DECO_TRIANGLE", d.cx, d.cy, d.r, d.angle, "DECORATIONS_SHAPE", 5);
+          else if (d.type === 'cross') dxf += dxfCreateInsert("DECO_CROSS", d.cx, d.cy, d.r, d.angle, "DECORATIONS_SHAPE", 5);
+          else if (d.type === 'solid_circle') dxf += dxfCreateInsert("DECO_SOLID_CIRCLE", d.cx, d.cy, d.r, d.angle, "DECORATIONS_SHAPE", 7);
+          else if (d.type === 'angle_bracket') dxf += dxfCreateInsert("DECO_ANGLE_BRACKET", d.cx, d.cy, d.r, d.angle, "DECORATIONS_SHAPE", 7);
+          else if (d.type === 'megane') dxf += dxfCreateInsert("DECO_MEGANE", d.cx, d.cy, d.scale, d.angle, "DECORATIONS_SHAPE", 5);
+        });
+      } else {
+        if (group.higePath) dxf += dxfCreatePath(group.higePath, "DECORATIONS_HIGE", 1); 
+        if (group.shapePath) dxf += dxfCreatePath(group.shapePath, "DECORATIONS_SHAPE", 5); 
+      }
+    });
+
+    dxf += labelsEntitiesDxf + "  0\nENDSEC\n  0\nEOF\n";
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), dxf], { type: "application/dxf" });
+    const url = URL.createObjectURL(blob), a = document.createElement("a");
+    a.href = url; a.download = (fileInfo?.name ? fileInfo.name.replace(".xml", "") : "export") + "_map.dxf";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  }, [currentPolygons, currentAppliedGroups, lines, viewBox.w, fileInfo, decorationScale, regionLabels, currentChibanOverrides]);
+
+  return { exportToDXF };
+}
