@@ -20,14 +20,14 @@ export function StartScreen({
       <label className="flex flex-col items-center justify-center w-full max-w-2xl h-96 border-2 border-indigo-300 border-dashed rounded-2xl cursor-pointer bg-white hover:bg-indigo-50 transition-colors shadow-sm">
         <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center px-4">
           <UploadCloud className="w-16 h-16 text-indigo-400 mb-4" />
-          <p className="mb-2 text-xl font-semibold text-neutral-700">地図XML・KMLファイルをドラッグ＆ドロップ</p>
+          <p className="mb-2 text-xl font-semibold text-neutral-700">地図XML・KML・作業状況ファイルをドラッグ＆ドロップ</p>
           <div className="bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm hover:bg-indigo-700">ファイルを選択</div>
         </div>
         <input 
           type="file" 
           multiple 
           className="hidden" 
-          accept=".xml,.kml" 
+          accept=".xml,.kml,.json" 
           onChange={e => { 
             Array.from(e.target.files).forEach(f => loadFile(f)); 
             e.target.value = ''; 

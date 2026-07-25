@@ -27,7 +27,9 @@ export function useMapData({
   const loadFile = useCallback((file, isAppend = false) => {
     const isXml = file.name.toLowerCase().endsWith('.xml');
     const isKml = file.name.toLowerCase().endsWith('.kml');
-    if (!isXml && !isKml) return setError("XMLまたはKMLファイルを選択してください。");
+    const isJson = file.name.toLowerCase().endsWith('.json');
+    if (!isXml && !isKml && !isJson) return setError("XML, KML, または作業状況ファイル(.json)を選択してください。");
+
     setLoading(true); setError(null);
     
     const reader = new FileReader();
@@ -37,8 +39,39 @@ export function useMapData({
          const uint8 = new Uint8Array(buf);
          const headStr = new TextDecoder('ascii').decode(uint8.slice(0, 200));
          let encoding = 'Shift_JIS';
-         if (headStr.toLowerCase().includes('utf-8')) encoding = 'utf-8';
+         if (headStr.toLowerCase().includes('utf-8') || isJson) encoding = 'utf-8';
          const text = new TextDecoder(encoding).decode(uint8);
+         
+         if (isJson) {
+           const parsed = JSON.parse(text);
+           if (isAppend) {
+               setData(prev => {
+                   const newLines = [...prev.lines, ...(parsed.lines || [])];
+                   let newBBox = prev.boundingBox;
+                   if (parsed.boundingBox) {
+                       newBBox = {
+                           minX: Math.min(prev.boundingBox?.minX ?? Infinity, parsed.boundingBox.minX),
+                           minY: Math.min(prev.boundingBox?.minY ?? Infinity, parsed.boundingBox.minY),
+                           maxX: Math.max(prev.boundingBox?.maxX ?? -Infinity, parsed.boundingBox.maxX),
+                           maxY: Math.max(prev.boundingBox?.maxY ?? -Infinity, parsed.boundingBox.maxY),
+                       };
+                   }
+                   return { ...prev, lines: newLines, boundingBox: newBBox };
+               });
+               commitChange([...currentPolygons, ...(parsed.polygons || [])], [...currentAppliedGroups, ...(parsed.appliedGroups || [])], { ...currentRegionOverrides, ...(parsed.regionOverrides || {}) }, { ...currentChibanOverrides, ...(parsed.chibanOverrides || {}) });
+           } else {
+               setData({ lines: parsed.lines || [], boundingBox: parsed.boundingBox || null, coordinateSystem: parsed.coordinateSystem || null, fileInfo: parsed.fileInfo || { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' } });
+               setHistory([{ 
+                  polygons: parsed.polygons || [], 
+                  appliedGroups: parsed.appliedGroups || [],
+                  regionOverrides: parsed.regionOverrides || {},
+                  chibanOverrides: parsed.chibanOverrides || {}
+               }]);
+               setHistoryIndex(0);
+               if (parsed.coordinateSystem) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
+           }
+           return;
+         }
          
          const fileId = Math.random().toString(36).substring(2, 8);
          let defaultSys = "auto";

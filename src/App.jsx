@@ -77,6 +77,21 @@ export default function App() {
     currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides
   });
 
+  const exportToJSON = useCallback(() => {
+    const projectData = {
+      lines: data.lines, polygons: currentPolygons, appliedGroups: currentAppliedGroups,
+      regionOverrides: currentRegionOverrides, chibanOverrides: currentChibanOverrides,
+      boundingBox: data.boundingBox, coordinateSystem: data.coordinateSystem, fileInfo: data.fileInfo
+    };
+    const blob = new Blob([JSON.stringify(projectData)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sakuzu_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [data, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides]);
+
   const getSvgPoint = useCallback((e) => {
     if (!svgRef.current) return null;
     const pt = svgRef.current.createSVGPoint();
@@ -586,7 +601,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-full absolute inset-0 w-full bg-neutral-100 text-neutral-800 font-sans overflow-hidden">
-      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onLoadFile={loadFile} />
+      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onExportJSON={exportToJSON} onLoadFile={loadFile} />
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
