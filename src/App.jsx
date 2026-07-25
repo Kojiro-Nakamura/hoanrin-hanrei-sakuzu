@@ -19,6 +19,7 @@ import { StartScreen } from './components/StartScreen';
 
 export default function App() {
   const containerRef = useRef(null);
+  const lastDrawRef = useRef(0);
 
   useEffect(() => {
     if (window.polygonClipping) return;
@@ -43,8 +44,10 @@ export default function App() {
   
   const [dragRegionOverride, setDragRegionOverride] = useState(null);
   const [dragChibanOverride, setDragChibanOverride] = useState(null);
+  const [dragDecoOverride, setDragDecoOverride] = useState(null);
 
   const [activeDeco, setActiveDeco] = useState(null); 
+  const [selectedDecoId, setSelectedDecoId] = useState(null); 
 
   const { viewBox, svgRef, isDragging, handlers: panZoomHandlers, fitToBoundingBox, wasDragged } = usePanZoom(mode);
 
@@ -126,10 +129,12 @@ export default function App() {
     let nextPolygons = [...currentPolygons];
     const newSelectedIds = [];
     
+    let nextAppliedGroups = [...currentAppliedGroups];
+
     if (!forceClose) {
       // split polygons (both custom and XML)
       const targetPolys = nextPolygons.filter(p => p.isClosed !== false);
-      const thickness = (viewBox && viewBox.w) ? viewBox.w / 2000 : 0.05;
+      const thickness = (viewBox && viewBox.w) ? viewBox.w / 100000 : 0.0001;
       const splitResults = splitPolygons(targetPolys, drawingPts, thickness);
       
       if (splitResults.length > 0) {
@@ -139,10 +144,36 @@ export default function App() {
           // Add split parts
           nextPolygons.push(...res.newPolys);
           newSelectedIds.push(...res.newPolys.map(p => p.id));
+          
+          let cx = 0, cy = 0, dx = 0, dy = 0, totalLen = 0;
+          for(let i=0; i<drawingPts.length-1; i++) totalLen += Math.hypot(drawingPts[i+1].x - drawingPts[i].x, drawingPts[i+1].y - drawingPts[i].y);
+          let targetLen = totalLen / 2, currentLen = 0;
+          for(let i=0; i<drawingPts.length-1; i++) {
+             const p1 = drawingPts[i], p2 = drawingPts[i+1], segLen = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+             if (currentLen + segLen >= targetLen) {
+                const ratio = segLen > 0 ? (targetLen - currentLen) / segLen : 0;
+                cx = p1.x + (p2.x - p1.x) * ratio; cy = p1.y + (p2.y - p1.y) * ratio;
+                dx = p2.x - p1.x; dy = p2.y - p1.y; break;
+             }
+             currentLen += segLen;
+          }
+          if (dx === 0 && dy === 0 && drawingPts.length > 0) { cx = drawingPts[0].x; cy = drawingPts[0].y; dx = 1; dy = 0; }
+          let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+          if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
+          
+          nextAppliedGroups.push({
+            id: 'grp_' + Date.now() + Math.random().toString(36).substr(2, 5),
+            polygonIds: res.newPolys.map(p => p.id),
+            chibanList: res.newPolys.map(p => p.chiban).filter(Boolean).join(', '),
+            lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.2 }]
+          });
         });
         // Since we split successfully, don't add the line itself
-        commitChange(nextPolygons, currentAppliedGroups);
-        setDrawingPts([]); setMode('select'); setSelectedPolygons(newSelectedIds);
+        commitChange(nextPolygons, nextAppliedGroups);
+        lastDrawRef.current = Date.now();
+        setDrawingPts([]);
+        setSnappedPt(null);
         return;
       }
     } else {
@@ -150,24 +181,49 @@ export default function App() {
       const targetPolys = nextPolygons.filter(p => p.isClosed !== false);
       const punchResults = punchHoleInPolygons(targetPolys, drawingPts);
       if (punchResults.length > 0) {
+        newPoly.chiban = punchResults[0].newPoly.chiban;
+        newPoly.chimoku = punchResults[0].newPoly.chimoku;
         punchResults.forEach(res => {
           // Remove original
           nextPolygons = nextPolygons.filter(p => p.id !== res.originalId);
           // Add punched polygon
           nextPolygons.push(res.newPoly);
+
+          const p1 = drawingPts[0], p2 = drawingPts[1];
+          const cx = (p1.x + p2.x) / 2, cy = (p1.y + p2.y) / 2;
+          const dx = p2.x - p1.x, dy = p2.y - p1.y;
+          let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+          if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
+
+          nextAppliedGroups.push({
+            id: 'grp_' + Date.now() + Math.random().toString(36).substr(2, 5),
+            polygonIds: [res.newPoly.id, newPoly.id],
+            chibanList: [res.newPoly.chiban, newPoly.chiban].filter((v, i, a) => v && a.indexOf(v) === i).join(', '),
+            lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.2 }]
+          });
         });
       }
     }
 
     // Default: just add the newly drawn poly/line
     nextPolygons.push(newPoly);
-    commitChange(nextPolygons, currentAppliedGroups);
-    setDrawingPts([]); setMode('select'); setSelectedPolygons([newPoly.id]);
-  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons, viewBox]);
+    commitChange(nextPolygons, nextAppliedGroups);
+    lastDrawRef.current = Date.now();
+    setDrawingPts([]);
+    setSnappedPt(null);
+  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons, viewBox, decorationScale]);
 
   const handleDecoMouseDown = useCallback((e, groupId, deco, dragMode) => {
-    setActiveDeco({ type: 'deco', groupId, decoId: deco.id });
-  }, []);
+    const pt = getSvgPoint(e);
+    if (!pt) return;
+    setActiveDeco({ 
+      type: 'deco', groupId, decoId: deco.id, dragMode, 
+      startCx: deco.cx, startCy: deco.cy, startAngle: deco.angle || 0,
+      startMouseX: pt.x, startMouseY: pt.y 
+    });
+    setSelectedDecoId(deco.id);
+  }, [getSvgPoint]);
 
   const handleRegionLabelMouseDown = useCallback((e, regionKey, dragMode, center) => {
     setActiveDeco({ type: 'region_label', id: regionKey, dragMode, startCx: center.x, startCy: center.y });
@@ -199,8 +255,29 @@ export default function App() {
           const scale = Math.max(0.2, 1.0 + (dx + dy) / 200);
           setDragChibanOverride({ polyId: activeDeco.id, scale });
         }
+      } else if (activeDeco.type === 'deco') {
+        if (activeDeco.dragMode === 'move') {
+          setDragDecoOverride({
+            groupId: activeDeco.groupId,
+            decoId: activeDeco.decoId,
+            cx: activeDeco.startCx + (pt.x - activeDeco.startMouseX),
+            cy: activeDeco.startCy + (pt.y - activeDeco.startMouseY)
+          });
+        } else if (activeDeco.dragMode === 'rotate') {
+          const rx = pt.x - activeDeco.startCx;
+          const ry = pt.y - activeDeco.startCy;
+          let newAngle = Math.atan2(ry, rx) * 180 / Math.PI;
+          setDragDecoOverride({
+            groupId: activeDeco.groupId, decoId: activeDeco.decoId, angle: newAngle
+          });
+        }
       }
     } else if (mode === 'draw') {
+      if (Date.now() - lastDrawRef.current < 500) {
+        setSnappedPt(null);
+        return;
+      }
+      
       const snapRadius = viewBox.w / 60;
       const snapRadiusSq = snapRadius * snapRadius;
       
@@ -266,12 +343,32 @@ export default function App() {
         commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [dragChibanOverride.polyId]: dragChibanOverride });
         setDragChibanOverride(null);
       }
+      if (dragDecoOverride) {
+        const nextGroups = currentAppliedGroups.map(g => {
+          if (g.id !== dragDecoOverride.groupId) return g;
+          return {
+            ...g,
+            decorations: g.decorations.map(d => {
+              if (d.id !== dragDecoOverride.decoId) return d;
+              return {
+                ...d,
+                cx: dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : d.cx,
+                cy: dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : d.cy,
+                angle: dragDecoOverride.angle !== undefined ? dragDecoOverride.angle : d.angle
+              };
+            })
+          };
+        });
+        commitChange(currentPolygons, nextGroups);
+        setDragDecoOverride(null);
+      }
       setActiveDeco(null);
     }
-  }, [activeDeco, dragRegionOverride, dragChibanOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
+  }, [activeDeco, dragRegionOverride, dragChibanOverride, dragDecoOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
 
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
+    setSelectedDecoId(null);
     if (mode === 'draw') {
       const pt = getSvgPoint(e); if (!pt) return;
       if (drawingPts.length >= 3 && snappedPt && snappedPt.type === 'start') {
@@ -279,10 +376,27 @@ export default function App() {
       } else {
         setDrawingPts(prev => [...prev, snappedPt || pt]);
       }
+    } else if (mode === 'select' && currentPolygons.length > 0) {
+      const pt = getSvgPoint(e);
+      if (!pt) return;
+      let clickedId = null;
+      for (let i = currentPolygons.length - 1; i >= 0; i--) {
+        const poly = currentPolygons[i];
+        if (poly.pathData && isPointInPath(pt, poly.pathData)) {
+          clickedId = poly.id;
+          break;
+        }
+      }
+      if (clickedId) {
+        setSelectedPolygons(prev => prev.includes(clickedId) ? prev.filter(id => id !== clickedId) : [...prev, clickedId]);
+      } else {
+        setSelectedPolygons([]);
+      }
     }
-  }, [mode, wasDragged, snappedPt, getSvgPoint, drawingPts, finishDrawing]);
+  }, [mode, wasDragged, snappedPt, getSvgPoint, drawingPts, finishDrawing, currentPolygons, setSelectedPolygons]);
 
   const handleSvgContextMenu = useCallback((e) => { e.preventDefault(); e.stopPropagation(); if (mode === 'draw') setDrawingPts(prev => prev.length > 0 ? prev.slice(0, -1) : []); }, [mode]);
+
   const handlePolygonClick = (e, id) => {
     e.stopPropagation();
     if (wasDragged(e)) return;
@@ -290,8 +404,11 @@ export default function App() {
   };
 
   useEffect(() => { 
-    setDrawingPts([]); setSnappedPt(null); 
-    if (mode !== 'edit_deco') setActiveDeco(null);
+    setDrawingPts([]); setSnappedPt(null); setSelectedPolygons([]);
+    if (mode !== 'edit_deco') {
+      setActiveDeco(null);
+      setSelectedDecoId(null);
+    }
   }, [mode]);
 
   useEffect(() => {
@@ -517,14 +634,14 @@ export default function App() {
         )}
 
         {hasData && (
-          <div className="absolute inset-0 w-full h-full">
-            <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100 overflow-visible" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
+          <div className="absolute inset-0 w-full h-full select-none">
+            <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100 overflow-visible select-none" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
                  onMouseMove={(e) => { panZoomHandlers.onMouseMove(e); handleSvgMouseMove(e); }} 
                  onMouseUp={(e) => { panZoomHandlers.onMouseUp(e); handleSvgMouseUp(e); }} 
                  onMouseLeave={panZoomHandlers.onMouseLeave} onWheel={panZoomHandlers.onWheel}
                  onMouseDown={panZoomHandlers.onMouseDown}
                  onClick={handleSvgClick}
-                 onDoubleClick={(e) => { if (mode === 'draw') { e.stopPropagation(); finishDrawing(false); } }}
+                 onDoubleClick={(e) => { e.preventDefault(); if (mode === 'draw') { e.stopPropagation(); finishDrawing(false); } }}
                  onContextMenu={handleSvgContextMenu}>
               <defs>
                 <pattern id="grid" width={viewBox.w/20} height={viewBox.w/20} patternUnits="userSpaceOnUse">
@@ -542,12 +659,23 @@ export default function App() {
 
               {renderRegionLabels()}
               {renderPolygons()}
-              {currentAppliedGroups.map((group, i) => <LegendGroup key={group.id} group={group} scale={viewBox.w} mode={mode} activeDeco={activeDeco} onDecoMouseDown={handleDecoMouseDown} />)}
+              {currentAppliedGroups.map((group, i) => (
+                <LegendGroup 
+                  key={group.id} 
+                  group={group} 
+                  scale={viewBox.w} 
+                  mode={mode} 
+                  activeDeco={activeDeco} 
+                  selectedDecoId={selectedDecoId}
+                  onDecoMouseDown={handleDecoMouseDown} 
+                  dragDecoOverride={dragDecoOverride} 
+                />
+              ))}
               {renderDrawingLayer()}
             </svg>
 
             {mode !== 'select' && mode !== 'edit_deco' && (
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm flex items-center gap-2 pointer-events-none animate-in fade-in slide-in-from-bottom-4 whitespace-nowrap">
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm flex items-center gap-2 pointer-events-none animate-in fade-in slide-in-from-bottom-4 whitespace-nowrap">
                 <Edit3 className="w-4 h-4" />
                 <span>作図中 (分割/抽出)</span>
                 <span className="opacity-80 ml-2 font-normal text-[10px] sm:text-xs bg-indigo-800/50 px-2 py-0.5 rounded hidden sm:inline">クリック: 追加 / Enter: 完了 / 右クリック: 戻る / ESC: 取消</span>
@@ -571,18 +699,16 @@ export default function App() {
                 )}
               </div>
 
-              <div className="flex gap-2">
-                <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden w-[92px]">
-                  <button onClick={exportToDXF} className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors border-r border-neutral-200" title="DXFファイルとして保存"><Download className="w-5 h-5" /></button>
-                  <label className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors cursor-pointer" title="XML/KML追加読込">
-                    <UploadCloud className="w-5 h-5" /><input type="file" multiple className="hidden" accept=".xml,.kml" onChange={e => { Array.from(e.target.files).forEach(f => loadFile(f, true)); e.target.value = ''; }} />
-                  </label>
-                </div>
-  
-                <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden w-[92px]">
-                  <button onClick={handleUndo} disabled={historyIndex <= 0} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors border-r border-neutral-200`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
-                  <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
-                </div>
+              <div className="flex items-center gap-2">
+                <button onClick={handleUndo} disabled={historyIndex <= 0} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
+                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button onClick={exportToDXF} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="DXFファイルとして保存"><Download className="w-5 h-5" /></button>
+                <label className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white cursor-pointer" title="XML/KML追加読込">
+                  <UploadCloud className="w-5 h-5" /><input type="file" multiple className="hidden" accept=".xml,.kml" onChange={e => { Array.from(e.target.files).forEach(f => loadFile(f, true)); e.target.value = ''; }} />
+                </label>
               </div>
             </div>
 
@@ -593,7 +719,6 @@ export default function App() {
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
-              <div className="bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-neutral-200 text-xs text-neutral-500 flex items-center gap-2"><Move className="w-4 h-4" /><span>ドラッグ: 移動 / ホイール: 拡縮</span></div>
               {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}
             </div>
           </div>

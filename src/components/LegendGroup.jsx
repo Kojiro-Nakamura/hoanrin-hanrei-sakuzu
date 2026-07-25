@@ -1,7 +1,7 @@
 import React from 'react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const LegendGroup = ({ group, scale, mode, activeDeco, onDecoMouseDown }) => {
+export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDecoId, onDecoMouseDown, dragDecoOverride }) => {
   const sw = scale / 1000; 
   const maxShapeSw = 0.2, maxHigeSw = 0.3;
   const lineSw = sw * 1.2, shapeSw = Math.min(sw * 1.2, maxShapeSw), higeSw = Math.min(sw * 1.5, maxHigeSw);
@@ -89,6 +89,11 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, onDecoMouseDown })
         const isActive = activeDeco?.type === 'deco' && activeDeco?.groupId === group.id && activeDeco?.decoId === d.id;
         const isInteractive = mode === 'edit_deco';
         
+        const isDragOverride = dragDecoOverride && dragDecoOverride.groupId === group.id && dragDecoOverride.decoId === d.id;
+        const currentCx = isDragOverride && dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : d.cx;
+        const currentCy = isDragOverride && dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : d.cy;
+        const currentAngle = isDragOverride && dragDecoOverride.angle !== undefined ? dragDecoOverride.angle : d.angle;
+
         let pathStr = "";
         if (d.type === 'hige') { pathStr = `M 0 0 L ${d.hLen} 0`; }
         else if (d.type === 'circle') {
@@ -115,14 +120,16 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, onDecoMouseDown })
         }
         
         return (
-          <g key={d.id} className="deco-group" transform={`translate(${d.cx}, ${d.cy}) rotate(${d.angle})`}
+          <g key={d.id} className="deco-group" transform={`translate(${currentCx}, ${currentCy}) rotate(${currentAngle})`}
              onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'move'); } }}
              style={{ cursor: isInteractive ? 'move' : 'default', pointerEvents: isInteractive ? 'auto' : 'none' }}>
             {isInteractive && <path d={pathStr} fill="transparent" stroke="transparent" strokeWidth={sw * 20} />}
             <path d={pathStr} fill={d.type === 'solid_circle' ? "#3f3f46" : "none"} stroke={d.type==='hige'?"#dc2626":d.type==='solid_circle'?"#3f3f46":"#2563eb"} strokeWidth={d.type==='hige'?higeSw:shapeSw} strokeLinecap="round" strokeLinejoin="round" />
             {isActive && isInteractive && (
+              <path d={pathStr} fill="none" stroke="#ca8a04" strokeWidth={sw * 3.5} opacity="0.4" pointerEvents="none" />
+            )}
+            {isInteractive && selectedDecoId === d.id && (
               <g>
-                 <path d={pathStr} fill="none" stroke="#ca8a04" strokeWidth={sw * 3.5} opacity="0.4" pointerEvents="none" />
                  <line x1={d.r || d.hLen || d.scale*2.5} y1={0} x2={(d.r || d.hLen || d.scale*2.5) + scale/60} y2={0} stroke="#10b981" strokeWidth={sw*1.5} strokeDasharray={`${sw*2} ${sw*2}`} pointerEvents="none" />
                  <circle cx={(d.r || d.hLen || d.scale*2.5) + scale/60} cy={0} r={scale/150} fill="#10b981" stroke="#ffffff" strokeWidth={sw*0.5} cursor="crosshair" className="rotate-handle" onMouseDown={(e) => { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'rotate'); }} />
               </g>
