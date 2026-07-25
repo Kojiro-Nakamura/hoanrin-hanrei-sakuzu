@@ -15,21 +15,20 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       
       <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
         <p className="text-[11px] font-bold text-neutral-600">地目の設定 (丸囲み)</p>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {[
             { label: '保安林', value: '保' }, { label: '山林', value: '山' }, { label: '道路', value: '道' },
             { label: '田', value: '田' }, { label: '畑', value: '畑' }, { label: '宅地', value: '宅' },
             { label: '原野', value: '原' }, { label: '雑種地', value: '雑' }, { label: '墓地', value: '墓' }
           ].map(item => (
-            <button key={item.label} onClick={() => onApplyChimoku(item.value)} title={`「${item.value}」を設定`} className="h-7 px-2 flex items-center justify-center text-[11px] font-bold bg-white border border-neutral-300 rounded hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors shadow-sm">{item.label}</button>
+            <button key={item.label} onClick={() => onApplyChimoku(item.value)} title={`「${item.value}」を設定`} className="h-6 px-1.5 flex items-center justify-center text-[10px] font-bold bg-white border border-neutral-300 rounded hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors shadow-sm">{item.label}</button>
           ))}
-          <div className="flex items-center gap-1.5 ml-auto">
-             <span className="text-[10px] text-neutral-500">その他:</span>
-             <input type="text" maxLength={1} className="w-8 h-7 text-xs text-center border border-neutral-300 rounded outline-none focus:border-indigo-500 shadow-sm"
+          <div className="flex items-center gap-1 ml-auto">
+             <input type="text" maxLength={1} placeholder="他" className="w-6 h-6 text-[10px] text-center border border-neutral-300 rounded outline-none focus:border-indigo-500 shadow-sm"
                     onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value) { onApplyChimoku(e.target.value); e.target.value = ''; } }} />
              <button 
                 onClick={() => onApplyChimoku(null)} 
-                className={`h-7 px-2 text-[10px] font-bold bg-white border rounded transition-colors shadow-sm ${selectedPolygons.some(id => polygons.find(p => p.id === id)?.chimoku) ? 'text-neutral-800 border-neutral-400 hover:bg-neutral-200' : 'text-neutral-400 border-neutral-200 hover:bg-neutral-50'}`}
+                className={`h-6 px-1.5 text-[10px] font-bold bg-white border rounded transition-colors shadow-sm ${selectedPolygons.some(id => polygons.find(p => p.id === id)?.chimoku) ? 'text-neutral-800 border-neutral-400 hover:bg-neutral-200' : 'text-neutral-400 border-neutral-200 hover:bg-neutral-50'}`}
              >クリア</button>
           </div>
         </div>
