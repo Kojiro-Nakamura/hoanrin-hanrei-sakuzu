@@ -512,7 +512,7 @@ export default function App() {
       return (
         <g key={`poly-${poly.id}`}>
           {isCustom && <path d={poly.pathData} fill={poly.isClosed === false ? "none" : "rgba(16, 185, 129, 0.05)"} stroke="#10b981" strokeWidth={viewBox.w / 800} pointerEvents="none" fillRule="evenodd"/>}
-          {!isCustom && (!poly.curves || poly.isModified) && <path d={poly.pathData} fill="none" stroke="#10b981" strokeWidth={viewBox.w / 1000} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" fillRule="evenodd" opacity={0.8} />}
+          {!isCustom && (!poly.curves || poly.isModified) && <path d={poly.pathData} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} pointerEvents="none" fillRule="evenodd" opacity={0.8} />}
           {/* Selection Highlight */}
           {(isSelected || isHovered) && (
             <path 
