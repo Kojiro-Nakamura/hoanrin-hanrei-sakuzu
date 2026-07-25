@@ -58,14 +58,14 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         </div>
 
         <div className={`flex flex-col gap-1 mt-1.5 transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
-          <button onClick={() => onApplyStyle(selectedLineStyle, selectedDecoPattern)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]">
-            <Paintbrush className="w-4 h-4" /> 選択中({selectedPolygons.length})に適用
+          <button onClick={() => onApplyStyle(selectedLineStyle, selectedDecoPattern)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-1 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]">
+            <Paintbrush className="w-3.5 h-3.5" /> 選択中({selectedPolygons.length})に適用
           </button>
 
           <button 
             onClick={onApplyMegane} 
             disabled={selectedPolygons.length < 2}
-            className={`w-full font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm ${selectedPolygons.length < 2 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'}`}>
+            className={`w-full font-bold text-xs py-1 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm ${selectedPolygons.length < 2 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'}`}>
             〇⌒〇 境界にメガネを配置
           </button>
         </div>
