@@ -435,6 +435,9 @@ export default function App() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      
       if (e.key === 'Escape') { setDrawingPts([]); setMode('select'); }
       if (e.key === 'Enter' && mode === 'draw') finishDrawing(false);
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); }
