@@ -28,7 +28,12 @@ export const usePanZoom = (mode) => {
       let finalW = targetW, finalH = targetH;
       if (screenAspect > targetAspect) finalW = targetH * screenAspect;
       else finalH = targetW / screenAspect;
-      setViewBox({ x: centerX - finalW / 2, y: centerY - finalH / 2, w: finalW, h: finalH });
+      
+      const PANEL_WIDTH = 300;
+      const offsetPixelX = rect.width > PANEL_WIDTH * 2 ? PANEL_WIDTH / 2 : 0;
+      const offsetX = offsetPixelX * (finalW / rect.width);
+      
+      setViewBox({ x: centerX - finalW / 2 + offsetX, y: centerY - finalH / 2, w: finalW, h: finalH });
     } else {
       setViewBox({ x: centerX - targetW / 2, y: centerY - targetH / 2, w: targetW, h: targetH });
     }
