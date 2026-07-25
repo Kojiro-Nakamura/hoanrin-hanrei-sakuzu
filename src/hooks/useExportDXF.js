@@ -53,7 +53,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
                blockEntities += `  0\nLWPOLYLINE\n  8\nLABELS\n 62\n${poly.isCustom ? 4 : 7}\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
                blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
-               blockEntities += dxfCreateText(poly.chimoku, circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
+               blockEntities += dxfCreateText(poly.chimoku.charAt(0), circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              } else {
                const charW = fSize * 0.8, textW = poly.chiban.length * charW, rectW = textW + fSize, rectH = fSize * 1.5, rectX = -rectW / 2, rectY = -rectH / 2;
@@ -72,19 +72,30 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
 
     regionLabels.forEach((region, idx) => {
       if (!region.visible) return;
-      const textLines = [region.oaza ? `大字　${region.oaza}` : null, region.koaza ? `字　${region.koaza}` : null].filter(Boolean);
-      if (textLines.length === 0) return;
+      const text = region.text;
       const fSize = (viewBox.w / 150) * decorationScale * 1.2 * 1.5 * region.scale;
-      const rectW = Math.max(...textLines.map(t => t.length)) * fSize + fSize, rectH = textLines.length * fSize * 1.2 + fSize * 0.4;
-      const rectX = -rectW / 2, rectY = -rectH / 2, regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
+      const rectW = text.length * fSize + fSize;
+      const rectH = fSize * 1.5;
+      
+      let defaultOffsetY = 0;
+      if (region.groupHasBoth) {
+         defaultOffsetY = region.isOaza ? -(fSize * 1.6) / 2 : (fSize * 1.6) / 2;
+      }
+      
+      const finalCx = region.cx;
+      const finalCy = region.cy + defaultOffsetY;
+      
+      const rectX = -rectW / 2;
+      const rectY = -rectH / 2;
+      const regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
       
       dxf += `  0\nBLOCK_RECORD\n  2\n${regionBlockName}\n`;
       dxf += `  0\nBLOCK\n  8\n0\n  2\n${regionBlockName}\n  70\n0\n  10\n0.0\n  20\n0.0\n  30\n0.0\n  3\n${regionBlockName}\n`;
       dxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
       dxf += `  0\nLWPOLYLINE\n  8\nREGION_LABELS\n 62\n7\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
-      textLines.forEach((line, i) => { dxf += dxfCreateText(line, -(line.length * fSize) / 2, -(textLines.length - 1) * (fSize * 1.2) / 2 + i * fSize * 1.2, fSize, "REGION_LABELS", 7); });
+      dxf += dxfCreateText(text, -(text.length * fSize) / 2, 0, fSize, "REGION_LABELS", 7); 
       dxf += "  0\nENDBLK\n";
-      labelsEntitiesDxf += dxfCreateInsert(regionBlockName, region.cx, region.cy, 1.0, 0, "REGION_LABELS", 7);
+      labelsEntitiesDxf += dxfCreateInsert(regionBlockName, finalCx, finalCy, 1.0, 0, "REGION_LABELS", 7);
     });
 
     dxf += "  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES\n";

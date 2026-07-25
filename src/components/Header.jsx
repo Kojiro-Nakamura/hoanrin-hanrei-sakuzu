@@ -8,11 +8,10 @@ export const Header = ({ fileInfo, coordinateSystem, onReset }) => (
       <div className="flex items-center gap-4">
         {coordinateSystem && <span className="text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-800 rounded">第{coordinateSystem}系</span>}
         <div className="text-sm text-neutral-500 font-medium px-3 py-1 bg-neutral-100 rounded-full">{fileInfo.name} ({fileInfo.size})</div>
-        <button onClick={onReset} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 rounded-md transition-colors text-sm font-bold shadow-sm" title="作業をすべて破棄して最初の画面に戻る">
-          <Home className="w-4 h-4"/> 最初に戻る
+        <button onClick={onReset} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 rounded-md transition-colors text-sm font-bold shadow-sm" title="作業をすべて破棄してリセットする">
+          <Home className="w-4 h-4"/> リセット
         </button>
       </div>
     )}
   </header>
 );
-

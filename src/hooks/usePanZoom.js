@@ -50,7 +50,6 @@ export const usePanZoom = (mode) => {
     onMouseDown: (e) => {
       dragStart.current = { x: e.clientX, y: e.clientY };
       mousePos.current = { x: e.clientX, y: e.clientY };
-      if (mode === 'draw' && e.button === 0) return;
       setIsDragging(true);
     },
     onMouseMove: (e) => {

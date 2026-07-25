@@ -3,7 +3,7 @@ import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } fro
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
 export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale }) => (
-  <div className="absolute top-20 right-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-4 z-20 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-4 z-20 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
     
     <div className="flex items-center gap-2 border-b border-neutral-100 pb-2 shrink-0">
       <Paintbrush className="w-5 h-5 text-indigo-600" />

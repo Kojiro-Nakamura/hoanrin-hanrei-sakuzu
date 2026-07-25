@@ -182,7 +182,7 @@ export default function App() {
     if (!pt) return;
     setMouseSvgPt(pt);
 
-    if (activeDeco && isDragging) {
+    if (activeDeco) {
       const dx = pt.x - activeDeco.startCx, dy = pt.y - activeDeco.startCy;
       if (activeDeco.type === 'region_label') {
         if (activeDeco.dragMode === 'move') {
@@ -329,27 +329,33 @@ export default function App() {
   const renderRegionLabels = () => {
     if (!showLabels) return null;
     return regionLabels.map((region, idx) => {
-      const textLines = [region.oaza ? `大字　${region.oaza}` : null, region.koaza ? `字　${region.koaza}` : null].filter(Boolean);
-      if (textLines.length === 0) return null;
-
-      const fSize = labelFontSize * 1.5 * region.scale, rectW = Math.max(...textLines.map(t => t.length)) * fSize + fSize, rectH = textLines.length * fSize * 1.2 + fSize * 0.4;
-      const rectX = region.cx - rectW / 2, rectY = region.cy - rectH / 2, startY = region.cy - (textLines.length - 1) * (fSize * 1.2) / 2;
+      const text = region.text;
+      const override = (dragRegionOverride && dragRegionOverride.regionKey === region.key) ? dragRegionOverride : {};
+      const currentScale = override.scale !== undefined ? override.scale : region.scale;
+      const fSize = labelFontSize * 1.5 * currentScale;
+      const rectW = text.length * fSize + fSize;
+      const rectH = fSize * 1.5;
+      
+      let defaultOffsetY = 0;
+      if (region.groupHasBoth) {
+         defaultOffsetY = region.isOaza ? -(fSize * 1.6) / 2 : (fSize * 1.6) / 2;
+      }
+      
+      const finalCx = override.dx !== undefined ? region.baseCx + override.dx : region.cx;
+      const finalCy = (override.dy !== undefined ? region.baseCy + override.dy : region.cy) + defaultOffsetY;
+      
+      const rectX = finalCx - rectW / 2;
+      const rectY = finalCy - rectH / 2;
+      
       const isActive = activeDeco?.type === 'region_label' && activeDeco?.id === region.key, isInteractive = mode === 'edit_deco';
 
       return (
-        <g key={region.key} pointerEvents={isInteractive ? "auto" : "none"} className="select-none region-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'move', { x: region.cx, y: region.cy }); }}}>
-          {isInteractive && <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="transparent" stroke="transparent" />}
-          {textLines.map((text, i) => (
-            <React.Fragment key={i}>
-              <text x={region.cx} y={startY + i * (fSize * 1.2)} fontSize={fSize} fill="none" stroke={showMap && mapType === 'seamlessphoto' ? "rgba(0,0,0,0.8)" : "#ffffff"} strokeWidth={fSize * (showMap && mapType === 'seamlessphoto' ? 0.2 : 0.15)} strokeLinejoin="round" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{text}</text>
-              <text x={region.cx} y={startY + i * (fSize * 1.2)} fontSize={fSize} fill={showMap && mapType === 'seamlessphoto' ? "#ffffff" : "#4f46e5"} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none" opacity={0.9}>{text}</text>
-            </React.Fragment>
-          ))}
+        <g key={region.key} pointerEvents={isInteractive ? "auto" : "none"} className="select-none region-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'move', { x: region.baseCx, y: region.baseCy + defaultOffsetY }); }}}>
+          <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="#ffffff" stroke="#3f3f46" strokeWidth={fSize * 0.08} />
+          <text x={finalCx} y={finalCy} fontSize={fSize} fill="#3f3f46" fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{text}</text>
+          
           {isActive && isInteractive && (
-            <g>
-              <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
-              <circle cx={rectX + rectW} cy={rectY + rectH} r={viewBox.w / 150} fill="#10b981" stroke="#ffffff" strokeWidth={viewBox.w / 500} cursor="nwse-resize" onMouseDown={(e) => { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'scale', { x: region.cx, y: region.cy }); }} />
-            </g>
+            <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
           )}
         </g>
       );
@@ -401,13 +407,10 @@ export default function App() {
                      <>
                        <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="#ffffff" stroke={isCustom ? "#059669" : "#3f3f46"} strokeWidth={scaledFontSize * 0.08} />
                        <circle cx={circleCx} cy={finalCy} r={circleR} fill="none" stroke={isCustom ? "#059669" : "#3f3f46"} strokeWidth={scaledFontSize * 0.08} />
-                       <text x={circleCx} y={finalCy} fontSize={scaledFontSize*0.75} fill={isCustom ? "#059669" : "#3f3f46"} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chimoku}</text>
+                       <text x={circleCx} y={finalCy} fontSize={scaledFontSize*0.75} fill={isCustom ? "#059669" : "#3f3f46"} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chimoku.charAt(0)}</text>
                        <text x={textStartX} y={finalCy} fontSize={scaledFontSize} fill={isCustom ? "#059669" : "#3f3f46"} fontWeight="bold" textAnchor="start" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                        {isActive && isInteractive && (
-                         <g>
-                           <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
-                           <circle cx={rectX + rectW} cy={rectY + rectH} r={viewBox.w / 150} fill="#10b981" stroke="#ffffff" strokeWidth={viewBox.w / 500} cursor="nwse-resize" onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} />
-                         </g>
+                         <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
                        )}
                      </>
                    );
@@ -419,10 +422,7 @@ export default function App() {
                        <text x={finalCx} y={finalCy} fontSize={scaledFontSize} fill="none" stroke={showMap && mapType === 'seamlessphoto' ? "rgba(0, 0, 0, 0.8)" : "#ffffff"} strokeWidth={scaledFontSize * (showMap && mapType === 'seamlessphoto' ? 0.2 : 0.15)} strokeLinejoin="round" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                        <text x={finalCx} y={finalCy} fontSize={scaledFontSize} fill={isCustom ? "#059669" : (showMap && mapType === 'seamlessphoto' ? "#ffffff" : "#3f3f46")} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                        {isActive && isInteractive && (
-                         <g>
-                           <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
-                           <circle cx={rectX + rectW} cy={rectY + rectH} r={viewBox.w / 150} fill="#10b981" stroke="#ffffff" strokeWidth={viewBox.w / 500} cursor="nwse-resize" onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} />
-                         </g>
+                         <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w/200} ${viewBox.w/200}`} pointerEvents="none" />
                        )}
                      </>
                    );
@@ -475,10 +475,10 @@ export default function App() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 p-6 max-w-sm w-full flex flex-col gap-4">
             <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2"><Home className="w-5 h-5 text-indigo-600"/>作業のリセット</h3>
-            <p className="text-sm text-neutral-600">現在の作業データはすべて破棄され、最初の画面に戻ります。よろしいですか？</p>
+            <p className="text-sm text-neutral-600">現在の作業データはすべて破棄され、リセットされます。よろしいですか？</p>
             <div className="flex gap-2 justify-end mt-2">
               <button onClick={() => setShowResetConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200">キャンセル</button>
-              <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセットして戻る</button>
+              <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセット</button>
             </div>
           </div>
         </div>
@@ -518,7 +518,7 @@ export default function App() {
 
         {hasData && (
           <div className="absolute inset-0 w-full h-full">
-            <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
+            <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100 overflow-visible" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
                  onMouseMove={(e) => { panZoomHandlers.onMouseMove(e); handleSvgMouseMove(e); }} 
                  onMouseUp={(e) => { panZoomHandlers.onMouseUp(e); handleSvgMouseUp(e); }} 
                  onMouseLeave={panZoomHandlers.onMouseLeave} onWheel={panZoomHandlers.onWheel}
@@ -532,7 +532,7 @@ export default function App() {
                 </pattern>
                 {activeDeco && <filter id="glow"><feGaussianBlur stdDeviation={viewBox.w/300} result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>}
               </defs>
-              <rect x={viewBox.x} y={viewBox.y} width={viewBox.w} height={viewBox.h} fill="url(#grid)" pointerEvents="none" />
+              <rect x={viewBox.x - viewBox.w} y={viewBox.y - viewBox.h} width={viewBox.w * 3} height={viewBox.h * 3} fill="url(#grid)" pointerEvents="none" />
               
               {showMap && mapTiles.map(tile => (
                 <image key={tile.key} href={tile.url} x={tile.x} y={tile.y} width={tile.w} height={tile.h} preserveAspectRatio="none" className="opacity-80" crossOrigin="anonymous"/>
@@ -554,34 +554,36 @@ export default function App() {
               </div>
             )}
 
-            <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-auto z-10 w-[92px]">
-              <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden">
-                <button onClick={exportToDXF} className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors border-r border-neutral-200" title="DXFファイルとして保存"><Download className="w-5 h-5" /></button>
-                <label className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors cursor-pointer" title="XMLを追加読込">
-                  <UploadCloud className="w-5 h-5" /><input type="file" multiple className="hidden" accept=".xml" onChange={e => { Array.from(e.target.files).forEach(f => loadFile(f, true)); e.target.value = ''; }} />
-                </label>
+            <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-auto z-10">
+              <div className="flex items-center gap-2">
+                <button onClick={() => fitToBoundingBox(data.boundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
+                <button onClick={() => setShowLabels(!showLabels)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showLabels ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'}`} title="地番の表示切替"><Hash className="w-5 h-5" /></button>
+                <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
+                {showMap && (
+                  <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-neutral-500" />
+                    <select value={mapType} onChange={e => setMapType(e.target.value)} className="bg-transparent text-sm font-medium text-neutral-700 outline-none cursor-pointer">
+                      <option value="pale">淡色地図（見やすい）</option>
+                      <option value="std">標準地図</option>
+                      <option value="seamlessphoto">航空写真</option>
+                    </select>
+                  </div>
+                )}
               </div>
 
-              <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden">
-                <button onClick={handleUndo} disabled={historyIndex <= 0} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors border-r border-neutral-200`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
-                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
-              </div>
-            </div>
-
-            <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
-              <button onClick={() => setShowLabels(!showLabels)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showLabels ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'}`} title="地番の表示切替"><Hash className="w-5 h-5" /></button>
-              {showMap && (
-                <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-neutral-500" />
-                  <select value={mapType} onChange={e => setMapType(e.target.value)} className="bg-transparent text-sm font-medium text-neutral-700 outline-none cursor-pointer">
-                    <option value="pale">淡色地図（見やすい）</option>
-                    <option value="std">標準地図</option>
-                    <option value="seamlessphoto">航空写真</option>
-                  </select>
+              <div className="flex gap-2">
+                <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden w-[92px]">
+                  <button onClick={exportToDXF} className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors border-r border-neutral-200" title="DXFファイルとして保存"><Download className="w-5 h-5" /></button>
+                  <label className="flex-1 py-2.5 flex items-center justify-center hover:bg-neutral-50 text-neutral-700 transition-colors cursor-pointer" title="XML/KML追加読込">
+                    <UploadCloud className="w-5 h-5" /><input type="file" multiple className="hidden" accept=".xml,.kml" onChange={e => { Array.from(e.target.files).forEach(f => loadFile(f, true)); e.target.value = ''; }} />
+                  </label>
                 </div>
-              )}
-              <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
-              <button onClick={() => fitToBoundingBox(data.boundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
+  
+                <div className="flex bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden w-[92px]">
+                  <button onClick={handleUndo} disabled={historyIndex <= 0} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors border-r border-neutral-200`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
+                  <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`flex-1 py-2.5 flex items-center justify-center ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50'} text-neutral-700 transition-colors`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
+                </div>
+              </div>
             </div>
 
             <ToolPanel 

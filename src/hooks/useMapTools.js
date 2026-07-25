@@ -153,20 +153,39 @@ export function useMapTools({
     
     const labels = [];
     regions.forEach((data, key) => {
-       const override = currentRegionOverrides[key] || { dx: 0, dy: 0, scale: 1.0, visible: true };
-       if (override.visible === false) return;
        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
        data.polys.forEach(p => {
           parsePathToRings(p.pathData).forEach(ring => {
              ring.forEach(pt => { minX = Math.min(minX, pt.x); minY = Math.min(minY, pt.y); maxX = Math.max(maxX, pt.x); maxY = Math.max(maxY, pt.y); });
           });
        });
-       labels.push({
-          key, oaza: data.oaza, koaza: data.koaza,
-          baseCx: (minX + maxX) / 2, baseCy: (minY + maxY) / 2,
-          cx: (minX + maxX) / 2 + (override.dx || 0), cy: (minY + maxY) / 2 + (override.dy || 0),
-          scale: override.scale || 1.0, visible: override.visible !== false
-       });
+       const baseCx = (minX + maxX) / 2;
+       const baseCy = (minY + maxY) / 2;
+
+       if (data.oaza) {
+          const oazaKey = `oaza_${key}`;
+          const override = currentRegionOverrides[oazaKey] || currentRegionOverrides[key] || { dx: 0, dy: 0, scale: 1.0, visible: true };
+          if (override.visible !== false) {
+             labels.push({
+                key: oazaKey, text: `大字　${data.oaza}`, oaza: data.oaza, koaza: null, groupHasBoth: !!data.koaza, isOaza: true,
+                baseCx, baseCy,
+                cx: baseCx + (override.dx || 0), cy: baseCy + (override.dy || 0),
+                scale: override.scale || 1.0, visible: true
+             });
+          }
+       }
+       if (data.koaza) {
+          const koazaKey = `koaza_${key}`;
+          const override = currentRegionOverrides[koazaKey] || currentRegionOverrides[key] || { dx: 0, dy: 0, scale: 1.0, visible: true };
+          if (override.visible !== false) {
+             labels.push({
+                key: koazaKey, text: `字　${data.koaza}`, oaza: null, koaza: data.koaza, groupHasBoth: !!data.oaza, isOaza: false,
+                baseCx, baseCy,
+                cx: baseCx + (override.dx || 0), cy: baseCy + (override.dy || 0),
+                scale: override.scale || 1.0, visible: true
+             });
+          }
+       }
     });
     return labels;
   }, [currentPolygons, currentRegionOverrides]);

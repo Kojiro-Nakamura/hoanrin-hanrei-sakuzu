@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { saveToDB, loadFromDB } from '../utils/db';
-import { parseMojXml } from '../utils/dataProcessing';
+import { parseMojXml, parseKml } from '../utils/dataProcessing';
 
 export function useMapData({
   currentPolygons,
@@ -25,14 +25,28 @@ export function useMapData({
   const [hasSavedData, setHasSavedData] = useState(false);
 
   const loadFile = useCallback((file, isAppend = false) => {
-    if (!file.name.toLowerCase().endsWith('.xml')) return setError("XMLファイルを選択してください。");
+    const isXml = file.name.toLowerCase().endsWith('.xml');
+    const isKml = file.name.toLowerCase().endsWith('.kml');
+    if (!isXml && !isKml) return setError("XMLまたはKMLファイルを選択してください。");
     setLoading(true); setError(null);
     
     const reader = new FileReader();
     reader.onload = (e) => setTimeout(() => {
       try { 
+         const buf = e.target.result;
+         const uint8 = new Uint8Array(buf);
+         const headStr = new TextDecoder('ascii').decode(uint8.slice(0, 200));
+         let encoding = 'Shift_JIS';
+         if (headStr.toLowerCase().includes('utf-8')) encoding = 'utf-8';
+         const text = new TextDecoder(encoding).decode(uint8);
+         
          const fileId = Math.random().toString(36).substring(2, 8);
-         const parsed = parseMojXml(e.target.result, fileId); 
+         let defaultSys = "auto";
+         if (isAppend && data?.coordinateSystem) {
+           defaultSys = data.coordinateSystem;
+         }
+         // Note: For future SIMA support, we'll read sysSelect here if needed
+         const parsed = isKml ? parseKml(text, fileId, defaultSys) : parseMojXml(text, fileId); 
          
          if (isAppend) {
             setData(prev => {
@@ -63,7 +77,7 @@ export function useMapData({
       catch (err) { setError(err instanceof Error ? err.message : String(err)); } finally { setLoading(false); }
     }, 50);
     reader.onerror = () => { setError("読み込み失敗"); setLoading(false); };
-    reader.readAsText(file);
+    reader.readAsArrayBuffer(file);
   }, [currentPolygons, currentAppliedGroups, commitChange, fitToBoundingBox, setHistory, setHistoryIndex]);
 
   const startFreehandDraw = useCallback((sysNum) => {
@@ -75,7 +89,8 @@ export function useMapData({
     setHistoryIndex(0); 
     setMode('draw'); 
     setShowMap(true);
-  }, [setHistory, setHistoryIndex, setMode, setShowMap]);
+    setTimeout(() => fitToBoundingBox({ minX: 0, minY: 0, maxX: 1000, maxY: 1000 }), 50);
+  }, [fitToBoundingBox, setHistory, setHistoryIndex, setMode, setShowMap]);
 
   const confirmReset = useCallback(() => {
     setData({ lines: [], polygons: [], boundingBox: null, coordinateSystem: null, fileInfo: null });

@@ -1,4 +1,4 @@
-import { CS_ORIGINS } from '../constants';
+import { CS_ORIGINS, CS_PREFECTURES } from '../constants';
 import { parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, getExteriorPathString } from './geometry';
 
 export const processRingData = (pathStr, ringsOverride = null) => {
@@ -420,5 +420,135 @@ export const parseMojXml = (xmlText, fileId = "") => {
   });
 
   if (parsedLines.length === 0 || finalMinX === Infinity) throw new Error("地図の座標データが見つかりませんでした。");
+  return { lines: parsedLines, polygons: polyList, boundingBox: { minX: finalMinX, minY: finalMinY, maxX: finalMaxX, maxY: finalMaxY }, coordinateSystem: sysNum };
+};
+export const parseKml = (kmlText, fileId = "", defaultSysNum = "auto") => {
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(kmlText, "text/xml");
+  if (xmlDoc.getElementsByTagName("parsererror").length > 0) throw new Error("KMLの解析に失敗しました。");
+
+  const prefix = fileId ? `${fileId}_` : '';
+  const parsedLines = [], polyList = [];
+  
+  const allElements = Array.from(xmlDoc.getElementsByTagName("*"));
+  const placemarks = allElements.filter(el => el.localName === "Placemark");
+  
+  let sysNum = defaultSysNum !== "auto" ? parseInt(defaultSysNum, 10) : null;
+  let projStr = null;
+  if (sysNum && window.proj4) {
+    const origin = CS_ORIGINS[sysNum];
+    if (origin) {
+      projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+    }
+  }
+
+  placemarks.forEach((placemark, idx) => {
+    let oaza = "", koaza = "", chiban = "", chimoku = "";
+    
+    // Parse ExtendedData > SchemaData > SimpleData
+    const simpleDataEls = Array.from(placemark.getElementsByTagName("*")).filter(el => el.localName === "SimpleData");
+    for (let i = 0; i < simpleDataEls.length; i++) {
+      const name = simpleDataEls[i].getAttribute("name");
+      const val = simpleDataEls[i].textContent?.trim() || "";
+      if (name === "大字") oaza = val;
+      if (name === "字") koaza = val;
+      if (name === "地番") chiban = val;
+      if (name === "地目") chimoku = val;
+    }
+
+    // Extract coordinates to determine sysNum if not yet determined (i.e. if "auto" was passed)
+    if (!sysNum && window.proj4) {
+      const coordsEls = Array.from(placemark.getElementsByTagName("*")).filter(el => el.localName === "coordinates");
+      if (coordsEls.length > 0) {
+        const coordPairs = coordsEls[0].textContent.trim().split(/\s+/);
+        if (coordPairs.length > 0) {
+          const firstCoord = coordPairs[0].split(",");
+          const lon = parseFloat(firstCoord[0]), lat = parseFloat(firstCoord[1]);
+          if (!isNaN(lon) && !isNaN(lat)) {
+            let bestSys = 1, minDist = Infinity;
+            for (const pref of CS_PREFECTURES) {
+              const dist = Math.pow(lon - pref.lon, 2) + Math.pow(lat - pref.lat, 2);
+              if (dist < minDist) { minDist = dist; bestSys = pref.sys; }
+            }
+            sysNum = bestSys;
+            const origin = CS_ORIGINS[sysNum];
+            projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+          }
+        }
+      }
+    }
+
+    const polygons = Array.from(placemark.getElementsByTagName("*")).filter(el => el.localName === "Polygon");
+    polygons.forEach((polygonEl, polyIdx) => {
+      const outerEls = Array.from(polygonEl.getElementsByTagName("*")).filter(el => el.localName === "outerBoundaryIs");
+      if (outerEls.length === 0) return;
+      
+      const rings = []; 
+      
+      const getPoints = (boundaryEl) => {
+        const cEls = Array.from(boundaryEl.getElementsByTagName("*")).filter(el => el.localName === "coordinates");
+        if (cEls.length === 0) return [];
+        const cPairs = cEls[0].textContent.trim().split(/\s+/);
+        const pts = [];
+        for (const pair of cPairs) {
+          const parts = pair.split(",");
+          const lon = parseFloat(parts[0]), lat = parseFloat(parts[1]);
+          if (isNaN(lon) || isNaN(lat)) continue;
+          
+          if (projStr && window.proj4) {
+            const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+            pts.push({ x: e, y: -n });
+          } else {
+            pts.push({ x: lon, y: -lat });
+          }
+        }
+        return pts;
+      };
+
+      const outerRing = getPoints(outerEls[0]);
+      if (outerRing.length > 0) rings.push(outerRing);
+
+      const inners = Array.from(polygonEl.getElementsByTagName("*")).filter(el => el.localName === "innerBoundaryIs");
+      inners.forEach(innerEl => {
+        const innerRing = getPoints(innerEl);
+        if (innerRing.length > 0) rings.push(innerRing);
+      });
+
+      if (rings.length > 0) {
+        let pathData = "";
+        rings.forEach(ring => {
+          if (ring.length > 0) {
+            pathData += `M ${ring[0].x} ${ring[0].y} ` + ring.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+            pathData += " Z ";
+          }
+        });
+
+        const polyId = prefix + `placemark_${idx}_poly_${polyIdx}`;
+        polyList.push({
+          id: polyId,
+          chiban: chiban || "不明",
+          chimoku,
+          oaza,
+          koaza,
+          pathData,
+          curves: null,
+          center: calculatePolygonCenter(rings),
+          isCustom: false
+        });
+        
+        parsedLines.push(outerRing);
+      }
+    });
+  });
+
+  let finalMinX = Infinity, finalMinY = Infinity, finalMaxX = -Infinity, finalMaxY = -Infinity;
+  parsedLines.forEach(line => {
+    line.forEach(pt => {
+      finalMinX = Math.min(finalMinX, pt.x); finalMaxX = Math.max(finalMaxX, pt.x);
+      finalMinY = Math.min(finalMinY, pt.y); finalMaxY = Math.max(finalMaxY, pt.y);
+    });
+  });
+
+  if (polyList.length === 0 || finalMinX === Infinity) throw new Error("KMLにポリゴンデータが見つかりませんでした。");
   return { lines: parsedLines, polygons: polyList, boundingBox: { minX: finalMinX, minY: finalMinY, maxX: finalMaxX, maxY: finalMaxY }, coordinateSystem: sysNum };
 };

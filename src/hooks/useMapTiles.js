@@ -22,8 +22,33 @@ export const useMapTiles = (viewBox, showMap, coordinateSystem, mapType, contain
       let z = Math.log2((40075016 * Math.cos(c_lat * Math.PI / 180)) / (256 * (viewBox.w / clientW)));
       let renderZ = Math.max(2, Math.min(18, Math.round(z)));
 
-      const [nw_lon, nw_lat] = window.proj4(projStr, 'WGS84', [viewBox.x, -viewBox.y]);
-      const [se_lon, se_lat] = window.proj4(projStr, 'WGS84', [viewBox.x + viewBox.w, -(viewBox.y + viewBox.h)]);
+      let renderMinX = viewBox.x;
+      let renderMinY = viewBox.y;
+      let renderMaxX = viewBox.x + viewBox.w;
+      let renderMaxY = viewBox.y + viewBox.h;
+
+      if (containerRef.current) {
+        const cw = containerRef.current.clientWidth;
+        const ch = containerRef.current.clientHeight;
+        if (cw > 0 && ch > 0) {
+          const screenAspect = cw / ch;
+          const viewAspect = viewBox.w / viewBox.h;
+          if (screenAspect > viewAspect) {
+            const visibleW = viewBox.h * screenAspect;
+            const diff = (visibleW - viewBox.w) / 2;
+            renderMinX -= diff;
+            renderMaxX += diff;
+          } else {
+            const visibleH = viewBox.w / screenAspect;
+            const diff = (visibleH - viewBox.h) / 2;
+            renderMinY -= diff;
+            renderMaxY += diff;
+          }
+        }
+      }
+
+      const [nw_lon, nw_lat] = window.proj4(projStr, 'WGS84', [renderMinX, -renderMinY]);
+      const [se_lon, se_lat] = window.proj4(projStr, 'WGS84', [renderMaxX, -renderMaxY]);
       let xMin = lon2tile(Math.min(nw_lon, se_lon), renderZ), xMax = lon2tile(Math.max(nw_lon, se_lon), renderZ);
       let yMin = lat2tile(Math.max(nw_lat, se_lat), renderZ), yMax = lat2tile(Math.min(nw_lat, se_lat), renderZ);
 
