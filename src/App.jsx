@@ -586,13 +586,13 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-full absolute inset-0 w-full bg-neutral-100 text-neutral-800 font-sans overflow-hidden">
-      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} />
+      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onLoadFile={loadFile} />
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 p-6 max-w-sm w-full flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2"><Home className="w-5 h-5 text-indigo-600"/>作業のリセット</h3>
-            <p className="text-sm text-neutral-600">現在の作業データはすべて破棄され、リセットされます。よろしいですか？</p>
+            <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2"><Home className="w-5 h-5 text-indigo-600"/>全てのリセット</h3>
+            <p className="text-sm text-neutral-600">現在の作業データは全て破棄・リセットされます。よろしいですか？</p>
             <div className="flex gap-2 justify-end mt-2">
               <button onClick={() => setShowResetConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200">キャンセル</button>
               <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセット</button>
@@ -702,13 +702,6 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <button onClick={handleUndo} disabled={historyIndex <= 0} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
                 <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button onClick={exportToDXF} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="DXFファイルとして保存"><Download className="w-5 h-5" /></button>
-                <label className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white cursor-pointer" title="XML/KML追加読込">
-                  <UploadCloud className="w-5 h-5" /><input type="file" multiple className="hidden" accept=".xml,.kml" onChange={e => { Array.from(e.target.files).forEach(f => loadFile(f, true)); e.target.value = ''; }} />
-                </label>
               </div>
             </div>
 

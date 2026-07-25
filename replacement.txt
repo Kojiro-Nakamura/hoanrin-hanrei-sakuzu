@@ -1,0 +1,98 @@
+      if (diff.length > 1) {
+        const newPolys = [];
+        diff.forEach((geom, idx) => {
+          let pathData = "";
+          const allRings = [];
+          geom.forEach(ring => {
+            const mappedRing = ring.map(coord => ({ x: Number(coord[0].toFixed(3)), y: Number(coord[1].toFixed(3)) }));
+            if (mappedRing.length > 1) {
+              const first = mappedRing[0], last = mappedRing[mappedRing.length - 1];
+              if (Math.abs(first.x - last.x) < 0.005 && Math.abs(first.y - last.y) < 0.005) {
+                mappedRing.pop();
+              }
+            }
+            if (mappedRing.length > 0) {
+              pathData += "M " + mappedRing.map(p => `${p.x} ${p.y}`).join(" L ") + " Z ";
+              allRings.push(mappedRing);
+            }
+          });
+          if (pathData.trim() !== "") {
+            newPolys.push({
+              ...poly,
+              id: poly.id + '_split_' + idx + '_' + Date.now().toString(),
+              pathData: pathData.trim(),
+              center: calculatePolygonCenter(allRings),
+              isModified: true
+            });
+          }
+        });
+        splitResults.push({ originalId: poly.id, newPolys });
+      }
+    } catch (e) {
+      console.warn("Polygon splitting failed for poly", poly.id, e);
+    }
+  });
+
+  return splitResults;
+};
+
+export const punchHoleInPolygons = (targetPolygons, holePts) => {
+  if (holePts.length < 3) return [];
+  const ring = holePts.map(p => [p.x, p.y]);
+  const first = ring[0], last = ring[ring.length - 1];
+  if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]]);
+  
+  const cutPolyB = [[ring]];
+  
+  const getBBox = (pts) => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    pts.forEach(p => {
+      minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]);
+      minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]);
+    });
+    return { minX, minY, maxX, maxY };
+  };
+  
+  const isBBoxIntersect = (b1, b2) => !(b2.minX > b1.maxX || b2.maxX < b1.minX || b2.minY > b1.maxY || b2.maxY < b1.minY);
+  const cutBBox = getBBox(ring);
+  const punchResults = [];
+
+  targetPolygons.forEach(poly => {
+    if (!poly.pathData || poly.isClosed === false) return;
+    const rings = parsePathToRings(poly.pathData).map(r => r.map(pt => [pt.x, pt.y]));
+    if (rings.length === 0 || rings[0].length === 0) return;
+    
+    const pBBox = getBBox(rings[0]);
+    if (!isBBoxIntersect(pBBox, cutBBox)) return;
+
+    try {
+      if (pc.intersection([rings], cutPolyB).length === 0) return;
+      const diffResult = pc.difference([rings], cutPolyB);
+      
+      if (diffResult.length > 0) {
+        let pathData = "";
+        const allRings = [];
+        diffResult.forEach(geom => {
+          geom.forEach(ring => {
+            const mappedRing = ring.map(coord => ({ x: Number(coord[0].toFixed(3)), y: Number(coord[1].toFixed(3)) }));
+            if (mappedRing.length > 1) {
+              const f = mappedRing[0], l = mappedRing[mappedRing.length - 1];
+              if (Math.abs(f.x - l.x) < 0.005 && Math.abs(f.y - l.y) < 0.005) mappedRing.pop();
+            }
+            if (mappedRing.length > 0) {
+              pathData += "M " + mappedRing.map(p => `${p.x} ${p.y}`).join(" L ") + " Z ";
+              allRings.push(mappedRing);
+            }
+          });
+        });
+        if (pathData.trim() !== "") {
+          punchResults.push({ originalId: poly.id, newPoly: { ...poly, pathData: pathData.trim(), center: calculatePolygonCenter(allRings), isModified: true } });
+        }
+      }
+    } catch (e) {
+      console.warn("Polygon difference failed", e);
+    }
+  });
+
+  return punchResults;
+};

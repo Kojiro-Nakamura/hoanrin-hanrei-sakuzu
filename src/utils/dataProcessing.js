@@ -226,7 +226,7 @@ export const buildConnectedPath = (segmentsList) => {
 
 export const extractExteriorPath = (targetPolygons) => {
   if (targetPolygons.length === 0) return "";
-  if (targetPolygons.length === 1) return getExteriorPathString(targetPolygons[0].pathData);
+  if (targetPolygons.length === 1) return targetPolygons[0].pathData;
   
   if (window.polygonClipping) {
     try {
@@ -242,20 +242,7 @@ export const extractExteriorPath = (targetPolygons) => {
       });
       const unionResult = window.polygonClipping.union(...polys);
       if (unionResult && unionResult.length > 0) {
-        const getPolyArea = (ring) => {
-          let sum = 0;
-          for (let i = 0; i < ring.length - 1; i++) sum += (ring[i+1][0] - ring[i][0]) * (ring[i+1][1] + ring[i][1]);
-          return Math.abs(sum / 2);
-        };
-        const exteriorOnly = unionResult.map(poly => {
-          let maxArea = -1, extRing = poly[0];
-          poly.forEach(ring => {
-            const a = getPolyArea(ring);
-            if (a > maxArea) { maxArea = a; extRing = ring; }
-          });
-          return [extRing];
-        });
-        return multiPolyToPath(exteriorOnly);
+        return multiPolyToPath(unionResult);
       }
     } catch (e) { console.warn("Polygon union failed", e); }
   }
