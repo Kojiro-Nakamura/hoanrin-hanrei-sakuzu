@@ -5,11 +5,6 @@ import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale }) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-4 z-20 flex flex-col gap-4 overflow-y-auto">
     
-    <div className="flex items-center gap-2 border-b border-neutral-100 pb-2 shrink-0">
-      <Paintbrush className="w-5 h-5 text-indigo-600" />
-      <h3 className="font-bold text-neutral-800">保安林凡例・作図ツール</h3>
-    </div>
-    
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
       <button onClick={() => setMode('select')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='select'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><MousePointerClick className="w-3 h-3"/> 選択</button>
       <button onClick={() => setMode('draw')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='draw'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><Scissors className="w-3 h-3"/> 作図</button>

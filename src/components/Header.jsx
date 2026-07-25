@@ -3,7 +3,7 @@ import { Map as MapIcon, Home, Download, UploadCloud } from 'lucide-react';
 
 export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExportJSON, onLoadFile }) => (
   <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-neutral-200 shadow-sm z-10 shrink-0">
-    <div className="flex items-center gap-2 text-indigo-700"><MapIcon className="w-6 h-6" /><h1 className="text-lg font-bold tracking-tight">法務省地図XML 凡例作図ツール</h1></div>
+    <div className="flex items-center gap-2 text-indigo-700"><MapIcon className="w-6 h-6" /><h1 className="text-lg font-bold tracking-tight">保安林凡例作図ツール</h1></div>
     {fileInfo && (
       <div className="flex items-center gap-4">
         {coordinateSystem && <span className="text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-800 rounded">第{coordinateSystem}系</span>}
