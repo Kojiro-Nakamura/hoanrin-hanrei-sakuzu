@@ -3,7 +3,7 @@ import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Downl
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
 import { openDB, saveToDB, loadFromDB } from './utils/db';
-import { lon2tile, lat2tile, tile2lon, tile2lat, parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, splitPolygons, punchHoleInPolygons, getExteriorPathString } from './utils/geometry';
+import { lon2tile, lat2tile, tile2lon, tile2lat, parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, isPointInPath, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, splitPolygons, punchHoleInPolygons, getExteriorPathString } from './utils/geometry';
 import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath } from './utils/dxf';
 import { processRingData, offsetRingByEdges, samplePath, generateOffsetRings, generateDecorations, buildConnectedPath, extractExteriorPath, parseMojXml } from './utils/dataProcessing';
 import { usePanZoom } from './hooks/usePanZoom';
@@ -66,7 +66,7 @@ export default function App() {
   const mapTiles = useMapTiles(viewBox, showMap, data?.coordinateSystem || null, mapType, containerRef);
 
   const {
-    handleApplyStyle, handleApplyMegane, handleApplyChimoku, handleRemoveFeatures, handleRemoveGroup, regionLabels
+    handleApplyStyle, handleApplyMegane, handleApplyChimoku, handleRemoveFeatures, handleRemoveGroup, handleUpdateCustomPolygon, regionLabels
   } = useMapTools({
     currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
     selectedPolygons, setSelectedPolygons, selectedLineStyle, selectedDecoPattern, decorationScale, mode,
@@ -123,7 +123,7 @@ export default function App() {
 
     const actionId = Date.now().toString();
     const newPoly = {
-      id: 'custom_' + actionId, chiban: forceClose ? '作図(面)' : '作図(線)', pathData: newPath, center, curves: null, isCustom: true, isClosed: forceClose, splitGroupId: actionId
+      id: 'custom_' + actionId, chiban: forceClose ? 'XXX-X' : '', pathData: newPath, center, curves: null, isCustom: true, isClosed: forceClose, splitGroupId: actionId
     };
     
     let nextPolygons = [...currentPolygons];
@@ -708,7 +708,7 @@ export default function App() {
             <ToolPanel 
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
-              onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onClearSelection={() => setSelectedPolygons([])} 
+              onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">

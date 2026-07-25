@@ -2,7 +2,7 @@ import React from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale }) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale }) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-4 z-20 flex flex-col gap-4 overflow-y-auto">
     
     <div className="flex items-center gap-2 border-b border-neutral-100 pb-2 shrink-0">
@@ -103,9 +103,16 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           <div className="text-xs text-neutral-500 bg-neutral-50 p-2 rounded border border-neutral-100 max-h-32 overflow-y-auto flex flex-col gap-1">
             {polygons.filter(p => selectedPolygons.includes(p.id)).map(p => (
               <div key={p.id} className="flex justify-between items-center bg-white p-1.5 rounded border border-neutral-200 shadow-sm">
-                <span className="font-medium text-neutral-700">{p.chiban}</span>
+                {p.isCustom ? (
+                  <div className="flex items-center gap-1.5">
+                    <input type="text" value={p.chiban || ''} onChange={e => onUpdateCustomPolygon(p.id, { chiban: e.target.value })} className="w-24 px-1 py-0.5 text-xs border border-neutral-300 rounded focus:outline-none focus:border-indigo-500 font-medium text-neutral-700" placeholder="地番" />
+                    <input type="text" maxLength={1} value={p.chimoku || ''} onChange={e => onUpdateCustomPolygon(p.id, { chimoku: e.target.value })} className="w-8 px-1 py-0.5 text-xs text-center border border-neutral-300 rounded focus:outline-none focus:border-indigo-500 font-medium text-neutral-700" placeholder="地目" title="地目を入力すると枠が付きます" />
+                  </div>
+                ) : (
+                  <span className="font-medium text-neutral-700">{p.chiban}</span>
+                )}
                 {(p.isCustom || p.parentPoly) && (
-                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors shrink-0 ml-1" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2 className="w-3.5 h-3.5" /></button>
                 )}
               </div>
             ))}

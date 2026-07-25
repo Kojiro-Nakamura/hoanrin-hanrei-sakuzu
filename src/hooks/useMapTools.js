@@ -220,12 +220,18 @@ export function useMapTools({
 
   const handleRemoveGroup = (id) => commitChange(currentPolygons, currentAppliedGroups.filter(g => g.id !== id));
 
+  const handleUpdateCustomPolygon = useCallback((id, updates) => {
+    const newPolygons = currentPolygons.map(p => p.id === id ? { ...p, ...updates } : p);
+    commitChange(newPolygons, currentAppliedGroups);
+  }, [currentPolygons, currentAppliedGroups, commitChange]);
+
   return {
     handleApplyStyle,
     handleApplyMegane,
     handleApplyChimoku,
     handleRemoveFeatures,
     handleRemoveGroup,
+    handleUpdateCustomPolygon,
     regionLabels
   };
 }

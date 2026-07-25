@@ -1,5 +1,5 @@
 import React from 'react';
-import { UploadCloud, CloudDownload } from 'lucide-react';
+import { UploadCloud, CloudDownload, ExternalLink } from 'lucide-react';
 import { CS_ORIGINS } from '../constants';
 
 export function StartScreen({
@@ -10,7 +10,7 @@ export function StartScreen({
 }) {
   return (
     <div 
-      className="absolute inset-0 flex flex-col items-center justify-center p-8" 
+      className="absolute inset-0 flex flex-col items-center justify-center p-8 overflow-y-auto" 
       onDragOver={e => e.preventDefault()} 
       onDrop={e => { 
         e.preventDefault(); 
@@ -34,6 +34,16 @@ export function StartScreen({
           }} 
         />
       </label>
+
+      <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 text-sm font-bold">
+        <a href="https://front.geospatial.jp/moj-chizu-xml-readme/moj-chizu-xml-download/" target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+          <ExternalLink className="w-4 h-4" /> 法務省登記所備付地図データのダウンロード
+        </a>
+        <span className="hidden sm:inline text-neutral-300">|</span>
+        <a href="https://front.geospatial.jp/usermanager/signup" target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+          <ExternalLink className="w-4 h-4" /> G空間情報センター新規ユーザー登録
+        </a>
+      </div>
 
       <div className="mt-8 flex flex-col items-center">
         <p className="text-sm font-bold text-neutral-700 mb-2">基準座標系 (新規作図用)</p>

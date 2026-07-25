@@ -102,6 +102,11 @@ export const isPointInside = (pt, rings) => {
   return inside;
 };
 
+export const isPointInPath = (pt, pathData) => {
+  const rings = parsePathToRings(pathData);
+  return isPointInside(pt, rings);
+};
+
 export const getPointInsidePolygon = (rings, minX, minY, maxX, maxY) => {
   const steps = 20; 
   const stepX = (maxX - minX) / steps, stepY = (maxY - minY) / steps;
