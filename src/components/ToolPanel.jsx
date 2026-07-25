@@ -3,7 +3,7 @@ import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } fro
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
 export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale }) => (
-  <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-4 z-20 flex flex-col gap-4 overflow-y-auto">
+  <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[350px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
       <button onClick={() => setMode('select')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='select'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><MousePointerClick className="w-3 h-3"/> 選択</button>
@@ -12,7 +12,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     </div>
 
     <div className="text-sm text-neutral-600 shrink-0">
-      <p className={`flex items-center gap-1.5 p-2.5 rounded border ${mode === 'select' || mode === 'edit_deco' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-blue-600 bg-blue-50 border-blue-100'}`}>
+      <p className={`flex items-center gap-1.5 p-2 rounded border ${mode === 'select' || mode === 'edit_deco' ? 'text-orange-600 bg-orange-50 border-orange-100' : 'text-blue-600 bg-blue-50 border-blue-100'}`}>
         {mode === 'select' ? <MousePointerClick className="w-4 h-4 shrink-0"/> : mode === 'edit_deco' ? <RefreshCw className="w-4 h-4 shrink-0"/> : <Edit3 className="w-4 h-4 shrink-0"/>}
         <span>
           {mode === 'select' ? '地図をクリックして筆を選択' : mode === 'edit_deco' ? '記号・文字をドラッグで移動' : '線を引いて分割、始点に戻ると面で抜取'}
@@ -29,9 +29,9 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       )}
     </div>
 
-    <div className="flex flex-col gap-3 shrink-0">
+    <div className="flex flex-col gap-2 shrink-0">
       
-      <div className={`flex flex-col gap-2 bg-neutral-50 p-3 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
         <p className="text-[11px] font-bold text-neutral-600">地目の設定 (丸囲み)</p>
         <div className="flex flex-wrap gap-1.5">
           {[
@@ -53,22 +53,22 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 bg-neutral-50 p-3 rounded-lg border border-neutral-100 shadow-inner">
-        <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner">
+        <div className="flex flex-col gap-1">
           <label className="text-[11px] font-bold text-neutral-600">線の種類</label>
-          <select value={selectedLineStyle} onChange={e => setSelectedLineStyle(e.target.value)} className="text-sm border border-neutral-300 rounded-md p-2 bg-white text-neutral-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm transition-shadow">
+          <select value={selectedLineStyle} onChange={e => setSelectedLineStyle(e.target.value)} className="text-xs border border-neutral-300 rounded-md py-1 px-1.5 bg-white text-neutral-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm transition-shadow">
             {LINE_STYLES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
 
-        <div className="flex flex-col gap-1.5 mt-2">
+        <div className="flex flex-col gap-1 mt-1">
           <label className="text-[11px] font-bold text-neutral-600">装飾パターン</label>
-          <select value={selectedDecoPattern} onChange={e => setSelectedDecoPattern(e.target.value)} className="text-sm border border-neutral-300 rounded-md p-2 bg-white text-neutral-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm transition-shadow">
+          <select value={selectedDecoPattern} onChange={e => setSelectedDecoPattern(e.target.value)} className="text-xs border border-neutral-300 rounded-md py-1 px-1.5 bg-white text-neutral-700 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 cursor-pointer shadow-sm transition-shadow">
             {DECO_PATTERNS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </div>
 
-        <div className="flex flex-col gap-1.5 mt-2" onWheel={(e) => { e.stopPropagation(); setDecorationScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
+        <div className="flex flex-col gap-1 mt-1" onWheel={(e) => { e.stopPropagation(); setDecorationScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
           <div className="flex justify-between items-center">
             <label className="text-[11px] font-bold text-neutral-600">文字・記号のサイズ</label>
             <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(decorationScale) ? 1.0 : decorationScale) * 100)}%</span>
@@ -76,12 +76,12 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
         </div>
 
-        <div className={`flex flex-col gap-1 mt-3 transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
-          <button onClick={() => onApplyStyle(selectedLineStyle, selectedDecoPattern)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]">
+        <div className={`flex flex-col gap-1 mt-1.5 transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+          <button onClick={() => onApplyStyle(selectedLineStyle, selectedDecoPattern)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]">
             <Paintbrush className="w-4 h-4" /> 選択中({selectedPolygons.length})に適用
           </button>
 
-          <button onClick={onApplyMegane} className="mt-1 w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-2.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <button onClick={onApplyMegane} className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm">
             〇⌒〇 境界にメガネを配置
           </button>
         </div>
