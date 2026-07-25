@@ -63,7 +63,10 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
             <Paintbrush className="w-4 h-4" /> 選択中({selectedPolygons.length})に適用
           </button>
 
-          <button onClick={onApplyMegane} className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm">
+          <button 
+            onClick={onApplyMegane} 
+            disabled={selectedPolygons.length < 2}
+            className={`w-full font-bold py-1.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm ${selectedPolygons.length < 2 ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed' : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'}`}>
             〇⌒〇 境界にメガネを配置
           </button>
         </div>
