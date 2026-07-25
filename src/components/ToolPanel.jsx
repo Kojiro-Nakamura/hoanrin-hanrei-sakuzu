@@ -54,7 +54,11 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
             <label className="text-[11px] font-bold text-neutral-600">文字・記号のサイズ</label>
             <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(decorationScale) ? 1.0 : decorationScale) * 100)}%</span>
           </div>
-          <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => setDecorationScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
+            <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
+            <button onClick={() => setDecorationScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
+          </div>
         </div>
 
         <div className={`flex flex-col gap-1 mt-1.5 transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
