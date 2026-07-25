@@ -690,10 +690,9 @@ export default function App() {
             </svg>
 
             {mode !== 'select' && mode !== 'edit_deco' && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-indigo-600 text-white px-6 py-2.5 rounded-full shadow-lg z-20 font-medium text-sm flex items-center gap-2 pointer-events-none animate-in fade-in slide-in-from-bottom-4 whitespace-nowrap">
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 border border-indigo-200 text-indigo-700 px-5 py-2 rounded-full shadow z-20 font-bold text-xs sm:text-sm flex items-center gap-2 pointer-events-none backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 whitespace-nowrap">
                 <Edit3 className="w-4 h-4" />
-                <span>作図中 (分割/抽出)</span>
-                <span className="opacity-80 ml-2 font-normal text-[10px] sm:text-xs bg-indigo-800/50 px-2 py-0.5 rounded hidden sm:inline">クリック: 追加 / Enter: 完了 / 右クリック: 戻る / ESC: 取消</span>
+                <span>クリック: 追加 / Enter: 完了 / 右クリック: 戻る / ESC: 取消</span>
               </div>
             )}
 
