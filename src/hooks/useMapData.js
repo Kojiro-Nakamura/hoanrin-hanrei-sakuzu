@@ -68,7 +68,7 @@ export function useMapData({
                   chibanOverrides: parsed.chibanOverrides || {}
                }]);
                setHistoryIndex(0);
-               if (parsed.coordinateSystem) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
+               if (parsed.boundingBox) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
            }
            return;
          }
@@ -93,6 +93,7 @@ export function useMapData({
                         maxY: Math.max(prev.boundingBox?.maxY ?? -Infinity, parsed.boundingBox.maxY),
                     };
                 }
+                setTimeout(() => { if (newBBox) fitToBoundingBox(newBBox); }, 50);
                 return { ...prev, lines: newLines, boundingBox: newBBox };
             });
             commitChange([...currentPolygons, ...parsed.polygons], currentAppliedGroups);
@@ -104,7 +105,7 @@ export function useMapData({
             });
             setHistory([{ polygons: parsed.polygons, appliedGroups: [], regionOverrides: {}, chibanOverrides: {} }]);
             setHistoryIndex(0);
-            if (parsed.coordinateSystem) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
+            if (parsed.boundingBox) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
          }
       } 
       catch (err) { setError(err instanceof Error ? err.message : String(err)); } finally { setLoading(false); }
