@@ -8,6 +8,20 @@ export const dxfCreateText = (text, x, y, height, layer="0", color=7) => {
 export const dxfCreateCircle = (cx, cy, r, layer="0", color=7) => `  0\nCIRCLE\n  8\n${layer}\n 62\n${color}\n 10\n${cx.toFixed(4)}\n 20\n${(-cy).toFixed(4)}\n 30\n0.0\n 40\n${r.toFixed(4)}\n`;
 export const dxfCreateInsert = (blockName, cx, cy, scale, angleDeg, layer="0", color=7) => `  0\nINSERT\n  2\n${blockName}\n  8\n${layer}\n 62\n${color}\n 10\n${cx.toFixed(4)}\n 20\n${(-cy).toFixed(4)}\n 30\n0.0\n 41\n${scale.toFixed(4)}\n 42\n${scale.toFixed(4)}\n 43\n1.0\n 50\n${(-angleDeg).toFixed(4)}\n`;
 export const dxfCreateSolid = (x1, y1, x2, y2, x3, y3, x4, y4, layer="0", color=7) => `  0\nSOLID\n  8\n${layer}\n 62\n${color}\n 10\n${x1.toFixed(4)}\n 20\n${(-y1).toFixed(4)}\n 30\n0.0\n 11\n${x2.toFixed(4)}\n 21\n${(-y2).toFixed(4)}\n 31\n0.0\n 12\n${x3.toFixed(4)}\n 22\n${(-y3).toFixed(4)}\n 32\n0.0\n 13\n${x4.toFixed(4)}\n 23\n${(-y4).toFixed(4)}\n 33\n0.0\n`;
+export const dxfCreateLines = (pts, closed, layer, color) => {
+  let res = "";
+  if (pts.length < 2) return res;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p1 = pts[i], p2 = pts[i+1];
+    res += `  0\nLINE\n  8\n${layer}\n 62\n${color}\n 10\n${p1.x.toFixed(4)}\n 20\n${(-p1.y).toFixed(4)}\n 30\n0.0\n 11\n${p2.x.toFixed(4)}\n 21\n${(-p2.y).toFixed(4)}\n 31\n0.0\n`;
+  }
+  if (closed) {
+    const p1 = pts[pts.length - 1], p2 = pts[0];
+    res += `  0\nLINE\n  8\n${layer}\n 62\n${color}\n 10\n${p1.x.toFixed(4)}\n 20\n${(-p1.y).toFixed(4)}\n 30\n0.0\n 11\n${p2.x.toFixed(4)}\n 21\n${(-p2.y).toFixed(4)}\n 31\n0.0\n`;
+  }
+  return res;
+};
+
 export const dxfCreatePath = (pathStr, layer, color, cx = 0, cy = 0, angleDeg = 0) => {
   if (!pathStr) return "";
   let res = "";
@@ -36,9 +50,7 @@ export const dxfCreatePath = (pathStr, layer, color, cx = 0, cy = 0, angleDeg = 
   if (currentPolyline && currentPolyline.pts.length > 0) polylines.push(currentPolyline);
 
   polylines.forEach(poly => {
-    if (poly.pts.length < 2) return;
-    res += `  0\nLWPOLYLINE\n  8\n${layer}\n 62\n${color}\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n${poly.pts.length}\n 70\n${poly.closed ? 1 : 0}\n`;
-    poly.pts.forEach(pt => { res += ` 10\n${pt.x.toFixed(4)}\n 20\n${(-pt.y).toFixed(4)}\n`; });
+    res += dxfCreateLines(poly.pts, poly.closed, layer, color);
   });
   return res;
 };

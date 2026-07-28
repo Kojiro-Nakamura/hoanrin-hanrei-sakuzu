@@ -1,10 +1,10 @@
 import { useCallback } from 'react';
-import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath } from '../utils/dxf';
+import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath, dxfCreateLines } from '../utils/dxf';
 import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
 export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, viewBox, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
   const exportToDXF = useCallback(() => {
-    let dxf = "  0\nSECTION\n  2\nHEADER\n  0\nENDSEC\n  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nLAYER\n  70\n7\n";
+    let dxf = "  0\nSECTION\n  2\nHEADER\n  9\n$ACADVER\n  1\nAC1009\n  0\nENDSEC\n  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nLAYER\n  70\n7\n";
     
     const addLayer = (name, color) => { dxf += `  0\nLAYER\n  2\n${name}\n 70\n0\n 62\n${color}\n  6\nCONTINUOUS\n`; };
     addLayer("BASE_LINES", 8);
@@ -22,24 +22,21 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     addLayer("LABELS_BG", 255);
     addLayer("ORIGIN_CROSS", 1);
     dxf += "  0\nENDTAB\n";
-
-    dxf += "  0\nTABLE\n  2\nBLOCK_RECORD\n  70\n1\n  0\nBLOCK_RECORD\n  2\n*Model_Space\n  0\nBLOCK_RECORD\n  2\n*Paper_Space\n";
     
     let blocksDxf = "";
     let labelsEntitiesDxf = "";
 
     const addDecoBlock = (name, entities) => {
-       dxf += `  0\nBLOCK_RECORD\n  2\n${name}\n`;
        blocksDxf += `  0\nBLOCK\n  8\n0\n  2\n${name}\n  70\n0\n  10\n0.0\n  20\n0.0\n  30\n0.0\n  3\n${name}\n`;
        blocksDxf += entities;
        blocksDxf += "  0\nENDBLK\n";
     };
 
     addDecoBlock("DECO_HIGE", `  0\nLINE\n  8\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n 11\n1.0\n 21\n0.0\n 31\n0.0\n`);
-    addDecoBlock("DECO_TRIANGLE", `  0\nLWPOLYLINE\n  8\n0\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n3\n 70\n1\n 10\n1.0\n 20\n0.0\n 10\n-0.5\n 20\n0.866\n 10\n-0.5\n 20\n-0.866\n`);
+    addDecoBlock("DECO_TRIANGLE", dxfCreateLines([{x: 1.0, y: 0.0}, {x: -0.5, y: -0.866}, {x: -0.5, y: 0.866}], true, "0", 0));
     addDecoBlock("DECO_CROSS", `  0\nLINE\n  8\n0\n 10\n-1.0\n 20\n1.0\n 30\n0.0\n 11\n1.0\n 21\n-1.0\n 31\n0.0\n  0\nLINE\n  8\n0\n 10\n-1.0\n 20\n-1.0\n 30\n0.0\n 11\n1.0\n 21\n1.0\n 31\n0.0\n`);
     addDecoBlock("DECO_SOLID_CIRCLE", dxfCreateCircle(0, 0, 1.0, "0", 7));
-    addDecoBlock("DECO_ANGLE_BRACKET", `  0\nLWPOLYLINE\n  8\n0\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n3\n 70\n0\n 10\n-0.8\n 20\n-0.4\n 10\n-1.0\n 20\n0.0\n 10\n-0.8\n 20\n0.4\n  0\nLWPOLYLINE\n  8\n0\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n3\n 70\n0\n 10\n0.8\n 20\n-0.4\n 10\n1.0\n 20\n0.0\n 10\n0.8\n 20\n0.4\n`);
+    addDecoBlock("DECO_ANGLE_BRACKET", dxfCreateLines([{x:-0.8, y:0.4}, {x:-1.0, y:0.0}, {x:-0.8, y:-0.4}], false, "0", 0) + dxfCreateLines([{x:0.8, y:0.4}, {x:1.0, y:0.0}, {x:0.8, y:-0.4}], false, "0", 0));
     addDecoBlock("DECO_MEGANE", dxfCreateCircle(-1.5, 0, 0.25, "0", 5) + dxfCreateCircle(1.5, 0, 0.25, "0", 5) + `  0\nARC\n  8\n0\n 10\n0.0\n 20\n-1.3125\n 30\n0.0\n 40\n1.8125\n 50\n46.397\n 51\n133.603\n`);
 
     let polyEntitiesDxf = "";
@@ -55,7 +52,6 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
           const override = currentChibanOverrides[poly.id] || { dx: 0, dy: 0, scale: 1.0, visible: true };
           if (override.visible !== false) {
              const labelBlockName = `LABEL_BLOCK_${idx}`;
-             dxf += `  0\nBLOCK_RECORD\n  2\n${labelBlockName}\n`;
              
              const fSize = (viewBox.w / 150) * decorationScale * 1.2 * override.scale;
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
@@ -67,7 +63,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                const startX = -totalW / 2, circleCx = startX + circleR, textStartX = startX + circleR * 2 + gap;
                const rectX = startX - fSize * 0.4, rectY = -fSize * 0.85, rectW = totalW + fSize * 0.8, rectH = fSize * 1.7;
                blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
-               blockEntities += `  0\nLWPOLYLINE\n  8\nLABELS\n 62\n${poly.isCustom ? 4 : 7}\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
+               blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chimoku.charAt(0), circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
@@ -105,10 +101,9 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       const rectY = -rectH / 2;
       const regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
       
-      dxf += `  0\nBLOCK_RECORD\n  2\n${regionBlockName}\n`;
       blocksDxf += `  0\nBLOCK\n  8\n0\n  2\n${regionBlockName}\n  70\n0\n  10\n0.0\n  20\n0.0\n  30\n0.0\n  3\n${regionBlockName}\n`;
       blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
-      blocksDxf += `  0\nLWPOLYLINE\n  8\nREGION_LABELS\n 62\n7\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n4\n 70\n1\n 10\n${rectX.toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-rectY).toFixed(4)}\n 10\n${(rectX+rectW).toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n 10\n${rectX.toFixed(4)}\n 20\n${(-(rectY+rectH)).toFixed(4)}\n`;
+      blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
       blocksDxf += "  0\nENDBLK\n";
       labelsEntitiesDxf += dxfCreateInsert(regionBlockName, finalCx, finalCy, 1.0, 0, "REGION_LABELS", 7);
@@ -120,9 +115,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     dxf += `  0\nLINE\n  8\nORIGIN_CROSS\n 62\n1\n 10\n-50.0000\n 20\n0.0000\n 30\n0.0\n 11\n50.0000\n 21\n0.0000\n 31\n0.0\n  0\nLINE\n  8\nORIGIN_CROSS\n 62\n1\n 10\n0.0000\n 20\n-50.0000\n 30\n0.0\n 11\n0.0000\n 21\n50.0000\n 31\n0.0\n`;
 
     lines.forEach(line => {
-      if (line.length < 2) return;
-      dxf += `  0\nLWPOLYLINE\n  8\nBASE_LINES\n 62\n8\n100\nAcDbEntity\n100\nAcDbPolyline\n 90\n${line.length}\n 70\n0\n`;
-      line.forEach(pt => { dxf += ` 10\n${pt.x.toFixed(4)}\n 20\n${(-pt.y).toFixed(4)}\n`; });
+      dxf += dxfCreateLines(line, false, "BASE_LINES", 8);
     });
 
     dxf += polyEntitiesDxf;
