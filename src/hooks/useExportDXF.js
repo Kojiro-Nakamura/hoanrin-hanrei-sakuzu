@@ -53,7 +53,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
           if (override.visible !== false) {
              const labelBlockName = `LABEL_BLOCK_${idx}`;
              
-             const fSize = (viewBox.w / 150) * decorationScale * 1.2 * override.scale;
+             const fSize = (viewBox.w / 150) * decorationScale * 1.2 * (override.scale ?? 1.0);
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
              const insertCx = finalCx, insertCy = finalCy;
              
@@ -150,7 +150,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     });
 
     dxf += labelsEntitiesDxf + "  0\nENDSEC\n  0\nEOF\n";
-    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), dxf], { type: "application/dxf" });
+    const blob = new Blob([dxf], { type: "application/dxf" });
     const url = URL.createObjectURL(blob), a = document.createElement("a");
     a.href = url; a.download = (fileInfo?.name ? fileInfo.name.replace(".xml", "") : "export") + "_map.dxf";
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
