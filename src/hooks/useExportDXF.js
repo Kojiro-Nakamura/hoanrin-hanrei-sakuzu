@@ -4,7 +4,7 @@ import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
 export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, viewBox, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
   const exportToDXF = useCallback(() => {
-    let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
+    let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n  9\r\nACADVER\r\n  1\r\nAC1009\r\n  9\r\nDWGCODEPAGE\r\n  3\r\nANSI_932\r\n  9\r\nEXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  9\r\nEXTMAX\r\n 10\r\n1000000.0\r\n 20\r\n1000000.0\r\n 30\r\n0.0\r\n  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
     
     const addLayer = (name, color) => { dxf += `  0\r\nLAYER\r\n  2\r\n${name}\r\n 70\r\n0\r\n 62\r\n${color}\r\n  6\r\nCONTINUOUS\r\n`; };
     addLayer("BASE_LINES", 8);
@@ -29,7 +29,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const addDecoBlock = (name, entities) => {
        blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${name}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${name}\r\n`;
        blocksDxf += entities;
-       blocksDxf += "  0\r\nENDBLK\r\n";
+       blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
     };
 
     addDecoBlock("DECO_HIGE", `  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n0.0\r\n 31\r\n0.0\r\n`);
@@ -75,7 +75,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
              
              blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${labelBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${labelBlockName}\r\n`;
              blocksDxf += blockEntities;
-             blocksDxf += "  0\r\nENDBLK\r\n";
+             blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
              labelsEntitiesDxf += dxfCreateInsert(labelBlockName, insertCx, insertCy, 1.0, 0, "LABELS", 7);
           }
         }
@@ -105,7 +105,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
-      blocksDxf += "  0\r\nENDBLK\r\n";
+      blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
       labelsEntitiesDxf += dxfCreateInsert(regionBlockName, finalCx, finalCy, 1.0, 0, "REGION_LABELS", 7);
     });
 
@@ -150,7 +150,9 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     });
 
     dxf += labelsEntitiesDxf + "  0\r\nENDSEC\r\n  0\r\nEOF\r\n";
-    const blob = new Blob([dxf], { type: "application/dxf" });
+    // Normalize all newlines to strictly CRLF for strict CAD compatibility
+    const finalDxf = dxf.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+    const blob = new Blob([finalDxf], { type: "application/dxf" });
     const url = URL.createObjectURL(blob), a = document.createElement("a");
     a.href = url; a.download = (fileInfo?.name ? fileInfo.name.replace(".xml", "") : "export") + "_map.dxf";
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
