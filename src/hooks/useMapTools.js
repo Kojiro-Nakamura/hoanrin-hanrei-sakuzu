@@ -20,7 +20,7 @@ export function useMapTools({
     const exteriorPath = extractExteriorPath(targetPolygons), chibanList = targetPolygons.map(p => p.chiban).join(', ');
     const patternInfo = DECO_PATTERNS.find(p => p.id === decoPatternId), pattern = patternInfo ? patternInfo.pattern : null;
     
-    const effScale = decorationScale * 0.72;
+    const effScale = decorationScale * 1.2;
     let interval = 5.0 * effScale, size = 0.8 * effScale, higeLength = 1.5 * effScale;
 
     if (pattern === 'circle') size = 0.7 * effScale;
