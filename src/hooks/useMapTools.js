@@ -20,7 +20,7 @@ export function useMapTools({
     const exteriorPath = extractExteriorPath(targetPolygons), chibanList = targetPolygons.map(p => p.chiban).join(', ');
     const patternInfo = DECO_PATTERNS.find(p => p.id === decoPatternId), pattern = patternInfo ? patternInfo.pattern : null;
     
-    const effScale = decorationScale * 1.2;
+    const effScale = decorationScale * 0.72;
     let interval = 5.0 * effScale, size = 0.8 * effScale, higeLength = 1.5 * effScale;
 
     if (pattern === 'circle') size = 0.7 * effScale;
@@ -82,7 +82,7 @@ export function useMapTools({
       }
     });
 
-    if (pairEdges.size === 0) { setError("選択された図形間に明確な共有境界線が見つかりませんでした。"); return; }
+    if (pairEdges.size === 0) { setError("選択された図形間に明確な共有墁E��線が見つかりませんでした、E); return; }
 
     const newDecorations = []; let meganeCount = 0;
     pairEdges.forEach((segments) => {
@@ -126,11 +126,11 @@ export function useMapTools({
           }
           let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
           if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
-          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.2 });
+          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 });
        }
     });
 
-    if (newDecorations.length === 0) { setError("選択された図形間に明確な共有境界線が見つかりませんでした。"); return; }
+    if (newDecorations.length === 0) { setError("選択された図形間に明確な共有墁E��線が見つかりませんでした、E); return; }
     commitChange(currentPolygons, [...currentAppliedGroups, { id: 'grp_' + Date.now(), polygonIds: [...selectedPolygons], chibanList: targetPolygons.map(p => p.chiban).join(', '), lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null, decorations: newDecorations }]);
     setSelectedPolygons([]); 
   }, [selectedPolygons, currentPolygons, currentAppliedGroups, commitChange, decorationScale]);
@@ -167,7 +167,7 @@ export function useMapTools({
           const override = currentRegionOverrides[oazaKey] || currentRegionOverrides[key] || { dx: 0, dy: 0, scale: 1.0, visible: true };
           if (override.visible !== false) {
              labels.push({
-                key: oazaKey, text: data.oaza.startsWith('大字') ? `大字　${data.oaza.replace(/^大字\s*/, '')}` : `大字　${data.oaza}`, oaza: data.oaza, koaza: null, groupHasBoth: !!data.koaza, isOaza: true,
+                key: oazaKey, text: data.oaza.startsWith('大孁E) ? `大字　${data.oaza.replace(/^大字\s*/, '')}` : `大字　${data.oaza}`, oaza: data.oaza, koaza: null, groupHasBoth: !!data.koaza, isOaza: true,
                 baseCx, baseCy,
                 cx: baseCx + (override.dx || 0), cy: baseCy + (override.dy || 0),
                 scale: override.scale || 1.0, visible: true
@@ -179,7 +179,7 @@ export function useMapTools({
           const override = currentRegionOverrides[koazaKey] || currentRegionOverrides[key] || { dx: 0, dy: 0, scale: 1.0, visible: true };
           if (override.visible !== false) {
              labels.push({
-                key: koazaKey, text: data.koaza.startsWith('字') ? `字　${data.koaza.replace(/^字\s*/, '')}` : `字　${data.koaza}`, oaza: null, koaza: data.koaza, groupHasBoth: !!data.oaza, isOaza: false,
+                key: koazaKey, text: data.koaza.startsWith('孁E) ? `字　${data.koaza.replace(/^字\s*/, '')}` : `字　${data.koaza}`, oaza: null, koaza: data.koaza, groupHasBoth: !!data.oaza, isOaza: false,
                 baseCx, baseCy,
                 cx: baseCx + (override.dx || 0), cy: baseCy + (override.dy || 0),
                 scale: override.scale || 1.0, visible: true

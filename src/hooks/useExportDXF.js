@@ -85,7 +85,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
           if (override.visible !== false) {
              const labelBlockName = `LABEL_BLOCK_${idx}`;
              
-             const fSize = (viewBox.w / 150) * decorationScale * 1.2 * (override.scale ?? 1.0);
+             const fSize = (viewBox.w / 150) * decorationScale * 0.72 * (override.scale ?? 1.0);
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
              const insertCx = finalCx, insertCy = finalCy;
              
@@ -117,7 +117,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     regionLabels.forEach((region, idx) => {
       if (!region.visible) return;
       const text = region.text;
-      const fSize = (viewBox.w / 150) * decorationScale * 1.2 * 1.5 * region.scale;
+      const fSize = (viewBox.w / 150) * decorationScale * 0.72 * 1.5 * region.scale;
       const rectW = text.length * fSize + fSize;
       const rectH = fSize * 1.5;
       

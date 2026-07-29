@@ -181,7 +181,7 @@ export default function App() {
             polygonIds: res.newPolys.map(p => p.id),
             chibanList: res.newPolys.map(p => p.chiban).filter(Boolean).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.2 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 }]
           });
         });
         // Since we split successfully, don't add the line itself
@@ -215,7 +215,7 @@ export default function App() {
             polygonIds: [res.newPoly.id, newPoly.id],
             chibanList: [res.newPoly.chiban, newPoly.chiban].filter((v, i, a) => v && a.indexOf(v) === i).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.2 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 }]
           });
         });
       }
@@ -427,7 +427,7 @@ export default function App() {
   }, [mode]);
 
   useEffect(() => {
-    if (error && error.includes("境界線が見つかりませんでした")) {
+    if (error && error.includes("墁E��線が見つかりませんでした")) {
       setError(null);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -457,7 +457,7 @@ export default function App() {
   }, [mode, finishDrawing, handleUndo, handleRedo, activeDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
-  const labelFontSize = (viewBox.w / 150) * decorationScale * 1.2;
+  const labelFontSize = (viewBox.w / 150) * decorationScale * 0.72;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
 
@@ -609,11 +609,11 @@ export default function App() {
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl border border-neutral-200 p-6 max-w-sm w-full flex flex-col gap-4">
-            <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2"><Home className="w-5 h-5 text-indigo-600"/>全てのリセット</h3>
-            <p className="text-sm text-neutral-600">現在の作業データは全て破棄・リセットされます。よろしいですか？</p>
+            <h3 className="text-lg font-bold text-neutral-800 flex items-center gap-2"><Home className="w-5 h-5 text-indigo-600"/>全てのリセチE��</h3>
+            <p className="text-sm text-neutral-600">現在の作業チE�Eタは全て破棁E�EリセチE��されます。よろしぁE��すか�E�E/p>
             <div className="flex gap-2 justify-end mt-2">
               <button onClick={() => setShowResetConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200">キャンセル</button>
-              <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセット</button>
+              <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセチE��</button>
             </div>
           </div>
         </div>
@@ -623,7 +623,7 @@ export default function App() {
         {loading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex flex-col items-center justify-center z-50">
             <Loader2 className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
-            <p className="text-lg font-bold text-neutral-800">データを読み込み中...</p>
+            <p className="text-lg font-bold text-neutral-800">チE�Eタを読み込み中...</p>
           </div>
         )}
 
@@ -631,7 +631,7 @@ export default function App() {
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-50 text-red-600 px-6 py-3 rounded-lg shadow-lg border border-red-200 flex items-center gap-3 z-50 animate-in fade-in slide-in-from-top-4">
             <AlertCircle className="w-5 h-5" />
             <span className="font-medium">{error}</span>
-            <button onClick={() => setError(null)} className="ml-4 hover:bg-red-100 p-1 rounded-md transition-colors">×</button>
+            <button onClick={() => setError(null)} className="ml-4 hover:bg-red-100 p-1 rounded-md transition-colors">ÁE/button>
           </div>
         )}
 
@@ -695,20 +695,20 @@ export default function App() {
             {mode !== 'select' && mode !== 'edit_deco' && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 border border-indigo-200 text-indigo-700 px-4 py-1.5 rounded-full shadow z-20 font-bold text-[10px] sm:text-xs flex items-center gap-1.5 pointer-events-none backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 whitespace-nowrap">
                 <Edit3 className="w-3.5 h-3.5" />
-                <span>クリック: 追加 / Enter,ダブルクリック: 完了 / 右クリック: 戻る / ESC: 取消</span>
+                <span>クリチE��: 追加 / Enter,ダブルクリチE��: 完亁E/ 右クリチE��: 戻めE/ ESC: 取涁E/span>
               </div>
             )}
 
             <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-auto z-10">
               <div className="flex items-center gap-2">
                 <button onClick={() => fitToBoundingBox(data.boundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
-                <button onClick={() => setShowLabels(!showLabels)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showLabels ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'}`} title="地番の表示切替"><Hash className="w-5 h-5" /></button>
-                <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
+                <button onClick={() => setShowLabels(!showLabels)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showLabels ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'}`} title="地番の表示刁E��"><Hash className="w-5 h-5" /></button>
+                <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地琁E��地図"><Globe className="w-5 h-5" /></button>
                 {showMap && (
                   <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
                     <Layers className="w-4 h-4 text-neutral-500" />
                     <select value={mapType} onChange={e => setMapType(e.target.value)} className="bg-transparent text-sm font-medium text-neutral-700 outline-none cursor-pointer">
-                      <option value="pale">淡色地図（見やすい）</option>
+                      <option value="pale">淡色地図�E�見やすい�E�E/option>
                       <option value="std">標準地図</option>
                       <option value="seamlessphoto">航空写真</option>
                     </select>
@@ -717,8 +717,8 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button onClick={handleUndo} disabled={historyIndex <= 0} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
-                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
+                <button onClick={handleUndo} disabled={historyIndex <= 0} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="允E��戻ぁE(Ctrl+Z)"><Undo className="w-5 h-5" /></button>
+                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="めE��直ぁE(Ctrl+Y)"><Redo className="w-5 h-5" /></button>
               </div>
             </div>
 
@@ -729,7 +729,7 @@ export default function App() {
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
-              {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}
+              {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典�E�国土地琁E��</a></div>}
             </div>
           </div>
         )}
