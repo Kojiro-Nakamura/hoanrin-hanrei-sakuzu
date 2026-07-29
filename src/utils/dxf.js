@@ -3,21 +3,21 @@ export const dxfCreateText = (text, x, y, height, layer="0", color=7) => {
     const code = c.charCodeAt(0);
     return code > 127 ? '\\U+' + code.toString(16).toUpperCase().padStart(4, '0') : c;
   }).join('');
-  return `  0\nTEXT\n  8\n${layer}\n 62\n${color}\n 10\n${x.toFixed(4)}\n 20\n${(-y).toFixed(4)}\n 30\n0.0\n 40\n${height.toFixed(4)}\n  1\n${escapedText}\n 72\n1\n 11\n${x.toFixed(4)}\n 21\n${(-y).toFixed(4)}\n 31\n0.0\n 73\n2\n`; 
+  return `  0\r\nTEXT\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${x.toFixed(4)}\r\n 20\r\n${(-y).toFixed(4)}\r\n 30\r\n0.0\r\n 40\r\n${height.toFixed(4)}\r\n  1\r\n${escapedText}\r\n 72\r\n1\r\n 11\r\n${x.toFixed(4)}\r\n 21\r\n${(-y).toFixed(4)}\r\n 31\r\n0.0\r\n 73\r\n2\r\n`; 
 };
-export const dxfCreateCircle = (cx, cy, r, layer="0", color=7) => `  0\nCIRCLE\n  8\n${layer}\n 62\n${color}\n 10\n${cx.toFixed(4)}\n 20\n${(-cy).toFixed(4)}\n 30\n0.0\n 40\n${r.toFixed(4)}\n`;
-export const dxfCreateInsert = (blockName, cx, cy, scale, angleDeg, layer="0", color=7) => `  0\nINSERT\n  2\n${blockName}\n  8\n${layer}\n 62\n${color}\n 10\n${cx.toFixed(4)}\n 20\n${(-cy).toFixed(4)}\n 30\n0.0\n 41\n${scale.toFixed(4)}\n 42\n${scale.toFixed(4)}\n 43\n1.0\n 50\n${(-angleDeg).toFixed(4)}\n`;
-export const dxfCreateSolid = (x1, y1, x2, y2, x3, y3, x4, y4, layer="0", color=7) => `  0\nSOLID\n  8\n${layer}\n 62\n${color}\n 10\n${x1.toFixed(4)}\n 20\n${(-y1).toFixed(4)}\n 30\n0.0\n 11\n${x2.toFixed(4)}\n 21\n${(-y2).toFixed(4)}\n 31\n0.0\n 12\n${x3.toFixed(4)}\n 22\n${(-y3).toFixed(4)}\n 32\n0.0\n 13\n${x4.toFixed(4)}\n 23\n${(-y4).toFixed(4)}\n 33\n0.0\n`;
+export const dxfCreateCircle = (cx, cy, r, layer="0", color=7) => `  0\r\nCIRCLE\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${cx.toFixed(4)}\r\n 20\r\n${(-cy).toFixed(4)}\r\n 30\r\n0.0\r\n 40\r\n${r.toFixed(4)}\r\n`;
+export const dxfCreateInsert = (blockName, cx, cy, scale, angleDeg, layer="0", color=7) => `  0\r\nINSERT\r\n  2\r\n${blockName}\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${cx.toFixed(4)}\r\n 20\r\n${(-cy).toFixed(4)}\r\n 30\r\n0.0\r\n 41\r\n${scale.toFixed(4)}\r\n 42\r\n${scale.toFixed(4)}\r\n 43\r\n1.0\r\n 50\r\n${(-angleDeg).toFixed(4)}\r\n`;
+export const dxfCreateSolid = (x1, y1, x2, y2, x3, y3, x4, y4, layer="0", color=7) => `  0\r\nSOLID\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${x1.toFixed(4)}\r\n 20\r\n${(-y1).toFixed(4)}\r\n 30\r\n0.0\r\n 11\r\n${x2.toFixed(4)}\r\n 21\r\n${(-y2).toFixed(4)}\r\n 31\r\n0.0\r\n 12\r\n${x3.toFixed(4)}\r\n 22\r\n${(-y3).toFixed(4)}\r\n 32\r\n0.0\r\n 13\r\n${x4.toFixed(4)}\r\n 23\r\n${(-y4).toFixed(4)}\r\n 33\r\n0.0\r\n`;
 export const dxfCreateLines = (pts, closed, layer, color) => {
   let res = "";
   if (pts.length < 2) return res;
   for (let i = 0; i < pts.length - 1; i++) {
     const p1 = pts[i], p2 = pts[i+1];
-    res += `  0\nLINE\n  8\n${layer}\n 62\n${color}\n 10\n${p1.x.toFixed(4)}\n 20\n${(-p1.y).toFixed(4)}\n 30\n0.0\n 11\n${p2.x.toFixed(4)}\n 21\n${(-p2.y).toFixed(4)}\n 31\n0.0\n`;
+    res += `  0\r\nLINE\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${p1.x.toFixed(4)}\r\n 20\r\n${(-p1.y).toFixed(4)}\r\n 30\r\n0.0\r\n 11\r\n${p2.x.toFixed(4)}\r\n 21\r\n${(-p2.y).toFixed(4)}\r\n 31\r\n0.0\r\n`;
   }
   if (closed) {
     const p1 = pts[pts.length - 1], p2 = pts[0];
-    res += `  0\nLINE\n  8\n${layer}\n 62\n${color}\n 10\n${p1.x.toFixed(4)}\n 20\n${(-p1.y).toFixed(4)}\n 30\n0.0\n 11\n${p2.x.toFixed(4)}\n 21\n${(-p2.y).toFixed(4)}\n 31\n0.0\n`;
+    res += `  0\r\nLINE\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${p1.x.toFixed(4)}\r\n 20\r\n${(-p1.y).toFixed(4)}\r\n 30\r\n0.0\r\n 11\r\n${p2.x.toFixed(4)}\r\n 21\r\n${(-p2.y).toFixed(4)}\r\n 31\r\n0.0\r\n`;
   }
   return res;
 };
