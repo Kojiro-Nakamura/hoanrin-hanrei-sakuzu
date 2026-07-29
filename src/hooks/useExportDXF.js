@@ -46,7 +46,13 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     addLayer("LABELS", 7);
     addLayer("LABELS_BG", 255);
     addLayer("ORIGIN_CROSS", 1);
-    dxf += "  0\r\nENDTAB\r\n";
+    dxf += "  0\r\nENDTAB\r\n" +
+           "  0\r\nTABLE\r\n  2\r\nSTYLE\r\n  70\r\n1\r\n  0\r\nSTYLE\r\n  2\r\nSTANDARD\r\n  70\r\n0\r\n 40\r\n0.0\r\n 41\r\n1.0\r\n 50\r\n0.0\r\n 71\r\n0\r\n 42\r\n0.2\r\n  3\r\ntxt\r\n  4\r\nbigfont\r\n  0\r\nENDTAB\r\n" +
+           "  0\r\nTABLE\r\n  2\r\nVIEW\r\n  70\r\n0\r\n  0\r\nENDTAB\r\n" +
+           "  0\r\nTABLE\r\n  2\r\nUCS\r\n  70\r\n0\r\n  0\r\nENDTAB\r\n" +
+           "  0\r\nTABLE\r\n  2\r\nAPPID\r\n  70\r\n1\r\n  0\r\nAPPID\r\n  2\r\nACAD\r\n  70\r\n0\r\n  0\r\nENDTAB\r\n" +
+           "  0\r\nTABLE\r\n  2\r\nDIMSTYLE\r\n  70\r\n0\r\n  0\r\nENDTAB\r\n" +
+           "  0\r\nENDSEC\r\n";
     
     let blocksDxf = '  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n*MODEL_SPACE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  3\r\n*MODEL_SPACE\r\n  1\r\n\r\n  0\r\nENDBLK\r\n  8\r\n0\r\n' +
       '  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n*PAPER_SPACE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  3\r\n*PAPER_SPACE\r\n  1\r\n\r\n  0\r\nENDBLK\r\n  8\r\n0\r\n';
