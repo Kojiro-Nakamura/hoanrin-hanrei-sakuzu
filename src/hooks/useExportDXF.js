@@ -4,7 +4,32 @@ import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
 export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, viewBox, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
   const exportToDXF = useCallback(() => {
-    let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n  9\r\n$ACADMAINTVER\r\n 70\r\n9\r\n  9\r\n$DWGCODEPAGE\r\n  3\r\nANSI_932\r\n  9\r\n$INSBASE\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  9\r\n$EXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  9\r\n$EXTMAX\r\n 10\r\n1000000.0\r\n 20\r\n1000000.0\r\n 30\r\n0.0\r\n  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
+    let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n" +
+      "  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n" +
+      "  9\r\n$ACADMAINTVER\r\n 70\r\n9\r\n" +
+      "  9\r\n$DWGCODEPAGE\r\n  3\r\nANSI_932\r\n" +
+      "  9\r\n$INSBASE\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
+      "  9\r\n$EXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
+      "  9\r\n$EXTMAX\r\n 10\r\n1000000.0\r\n 20\r\n1000000.0\r\n 30\r\n0.0\r\n" +
+      "  9\r\n$LIMMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n" +
+      "  9\r\n$LIMMAX\r\n 10\r\n1000000.0\r\n 20\r\n1000000.0\r\n" +
+      "  9\r\n$ORTHOMODE\r\n 70\r\n0\r\n" +
+      "  9\r\n$REGENMODE\r\n 70\r\n1\r\n" +
+      "  9\r\n$FILLMODE\r\n 70\r\n1\r\n" +
+      "  9\r\n$QTEXTMODE\r\n 70\r\n0\r\n" +
+      "  9\r\n$MIRRTEXT\r\n 70\r\n1\r\n" +
+      "  9\r\n$LTSCALE\r\n 40\r\n1.0\r\n" +
+      "  9\r\n$TEXTSIZE\r\n 40\r\n10.0\r\n" +
+      "  9\r\n$TRACEWID\r\n 40\r\n0.05\r\n" +
+      "  9\r\n$TEXTSTYLE\r\n  7\r\nSTANDARD\r\n" +
+      "  9\r\n$CLAYER\r\n  8\r\n0\r\n" +
+      "  9\r\n$CELTYPE\r\n  6\r\nBYLAYER\r\n" +
+      "  9\r\n$CECOLOR\r\n 62\r\n256\r\n" +
+      "  9\r\n$CELTSCALE\r\n 40\r\n1.0\r\n" +
+      "  9\r\n$DIMSCALE\r\n 40\r\n1.0\r\n" +
+      "  9\r\n$DIMSTYLE\r\n  2\r\nSTANDARD\r\n" +
+      "  9\r\n$MEASUREMENT\r\n 70\r\n1\r\n" +
+      "  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
     
     const addLayer = (name, color) => { dxf += `  0\r\nLAYER\r\n  2\r\n${name}\r\n 70\r\n0\r\n 62\r\n${color}\r\n  6\r\nCONTINUOUS\r\n`; };
     addLayer("BASE_LINES", 8);
@@ -23,11 +48,12 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     addLayer("ORIGIN_CROSS", 1);
     dxf += "  0\r\nENDTAB\r\n";
     
-    let blocksDxf = "";
+    let blocksDxf = '  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n*MODEL_SPACE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  3\r\n*MODEL_SPACE\r\n  1\r\n\r\n  0\r\nENDBLK\r\n  8\r\n0\r\n' +
+      '  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n*PAPER_SPACE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n  3\r\n*PAPER_SPACE\r\n  1\r\n\r\n  0\r\nENDBLK\r\n  8\r\n0\r\n';
     let labelsEntitiesDxf = "";
 
     const addDecoBlock = (name, entities) => {
-       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${name}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${name}\r\n`;
+       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${name}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${name}\r\n  1\r\n\r\n`;
        blocksDxf += entities;
        blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
     };
@@ -101,7 +127,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       const rectY = -rectH / 2;
       const regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
       
-      blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${regionBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${regionBlockName}\r\n`;
+      blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${regionBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${regionBlockName}\r\n  1\r\n\r\n`;
       blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
