@@ -38,6 +38,7 @@ export default function App() {
   const [selectedPolygons, setSelectedPolygons] = useState([]);
   const [hoveredPolygon, setHoveredPolygon] = useState(null);
   const [decorationScale, setDecorationScale] = useState(1.0);
+  const [screenMagnification, setScreenMagnification] = useState(1.0);
   const [selectedLineStyle, setSelectedLineStyle] = useState('single');
   const [selectedDecoPattern, setSelectedDecoPattern] = useState('none');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -726,7 +727,7 @@ export default function App() {
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
-              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} />
+              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
               {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}
