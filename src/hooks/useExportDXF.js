@@ -24,8 +24,8 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const limMinY = cy - limHeight / 2.0;
     const limMaxY = cy + limHeight / 2.0;
     
-    const pLimMaxX = 6400.0;
-    const pLimMaxY = 3600.0;
+    const pLimMaxX = Math.max(Math.abs(limMaxX), Math.abs(limMinX)) / 5000.0;
+    const pLimMaxY = Math.max(Math.abs(limMaxY), Math.abs(limMinY)) / 5000.0;
 
     let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n" +
       "  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n" +
@@ -63,15 +63,16 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     addLayer("POLYGONS", 3);
     addLayer("POLYGONS_CUSTOM", 4);
     addLayer("CHIBAN_LABELS", 7);
+    addLayer("LABELS_BG", 7);
     addLayer("REGION_LABELS", 7);
-    addLayer("REGION_LABELS_BG", 255);
+    addLayer("REGION_LABELS_BG", 7);
     addLayer("POLYGONS_STYLE", 4);
     addLayer("POLYGONS_STYLE_INNER", 4);
     addLayer("POLYGONS_STYLE_INNER2", 4);
     addLayer("DECORATIONS_HIGE", 1);
     addLayer("DECORATIONS_SHAPE", 5);
     addLayer("LABELS", 7);
-    addLayer("LABELS_BG", 255);
+    addLayer("LABELS_BG", 7);
     addLayer("ORIGIN_CROSS", 1);
     dxf += "  0\r\nENDTAB\r\n" +
            "  0\r\nTABLE\r\n  2\r\nSTYLE\r\n  70\r\n1\r\n  0\r\nSTYLE\r\n  2\r\nSTANDARD\r\n  70\r\n0\r\n 40\r\n0.0\r\n 41\r\n1.0\r\n 50\r\n0.0\r\n 71\r\n0\r\n 42\r\n0.2\r\n  3\r\ntxt\r\n  4\r\nbigfont\r\n  0\r\nENDTAB\r\n" +
@@ -121,14 +122,14 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                const charW = fSize * 0.55, chibanW = poly.chiban.length * charW, circleR = fSize * 0.65, gap = fSize * 0.2, totalW = circleR * 2 + gap + chibanW;
                const startX = -totalW / 2, circleCx = startX + circleR, textStartX = startX + circleR * 2 + gap;
                const rectX = startX - fSize * 0.4, rectY = -fSize * 0.85, rectW = totalW + fSize * 0.8, rectH = fSize * 1.7;
-               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 7);
                blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chimoku.charAt(0), circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              } else {
                const charW = fSize * 0.8, textW = poly.chiban.length * charW, rectW = textW + fSize, rectH = fSize * 1.5, rectX = -rectW / 2, rectY = -rectH / 2;
-               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 255);
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 7);
                blockEntities += dxfCreateText(poly.chiban, 0, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              }
              
@@ -161,7 +162,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       const regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
       
       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${regionBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${regionBlockName}\r\n  1\r\n\r\n`;
-      blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 255);
+      blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 7);
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
       blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
