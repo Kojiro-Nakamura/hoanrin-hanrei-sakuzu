@@ -10,8 +10,24 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const extMinY = -(viewBox.y + viewBox.h) * EXPORT_SCALE;
     const extMaxY = -viewBox.y * EXPORT_SCALE;
     
-    const dimScale = 5000.0;
-    const ltScale = 1250.0;
+    const cx = (extMinX + extMaxX) / 2.0;
+    const cy = (extMinY + extMaxY) / 2.0;
+
+    // Use exactly 6400x3600 paper (known to be accepted by Zuno RAPID from the first sample)
+    const pLimMaxXStr = "6400.0";
+    const pLimMaxYStr = "3600.0";
+    
+    // Scale is 5000, so 6400mm paper = 32,000,000mm model limit.
+    // Center the 32km limit exactly on the geometry so the geometry doesn't spill out and trigger auto-shrink.
+    const limMinXStr = (cx - 16000000.0).toFixed(4);
+    const limMaxXStr = (cx + 16000000.0).toFixed(4);
+    const limMinYStr = (cy - 9000000.0).toFixed(4);
+    const limMaxYStr = (cy + 9000000.0).toFixed(4);
+    
+    const extMinXStr = extMinX.toFixed(4);
+    const extMinYStr = extMinY.toFixed(4);
+    const extMaxXStr = extMaxX.toFixed(4);
+    const extMaxYStr = extMaxY.toFixed(4);
     
     const cx = (extMinX + extMaxX) / 2.0;
     const cy = (extMinY + extMaxY) / 2.0;
@@ -37,6 +53,10 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       "  9\r\n$ACADMAINTVER\r\n 70\r\n9\r\n" +
       "  9\r\n$DWGCODEPAGE\r\n  3\r\nANSI_932\r\n" +
       "  9\r\n$INSBASE\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
+      `  9\r\n$EXTMIN\r\n 10\r\n${extMinXStr}\r\n 20\r\n${extMinYStr}\r\n 30\r\n0.0\r\n` +
+      `  9\r\n$EXTMAX\r\n 10\r\n${extMaxXStr}\r\n 20\r\n${extMaxYStr}\r\n 30\r\n0.0\r\n` +
+      `  9\r\n$LIMMIN\r\n 10\r\n${limMinXStr}\r\n 20\r\n${limMinYStr}\r\n` +
+      `  9\r\n$LIMMAX\r\n 10\r\n${limMaxXStr}\r\n 20\r\n${limMaxYStr}\r\n` +
       "  9\r\n$ORTHOMODE\r\n 70\r\n0\r\n" +
       "  9\r\n$REGENMODE\r\n 70\r\n1\r\n" +
       "  9\r\n$FILLMODE\r\n 70\r\n1\r\n" +
@@ -52,6 +72,10 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       "  9\r\n$CELTSCALE\r\n 40\r\n1.0\r\n" +
       `  9\r\n$DIMSCALE\r\n 40\r\n${dimScale.toFixed(1)}\r\n` +
       "  9\r\n$DIMSTYLE\r\n  2\r\nSTANDARD\r\n" +
+      "  9\r\n$PEXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
+      `  9\r\n$PEXTMAX\r\n 10\r\n${pLimMaxXStr}\r\n 20\r\n${pLimMaxYStr}\r\n 30\r\n0.0\r\n` +
+      "  9\r\n$PLIMMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n" +
+      `  9\r\n$PLIMMAX\r\n 10\r\n${pLimMaxXStr}\r\n 20\r\n${pLimMaxYStr}\r\n` +
       "  9\r\n$MEASUREMENT\r\n 70\r\n1\r\n" +
       "  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
     
