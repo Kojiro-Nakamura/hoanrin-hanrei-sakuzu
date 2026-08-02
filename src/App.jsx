@@ -458,7 +458,7 @@ export default function App() {
   }, [mode, finishDrawing, handleUndo, handleRedo, activeDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
-  const labelFontSize = (viewBox.w / 150) * decorationScale * 0.72;
+  const labelFontSize = (viewBox.w / 150) * screenMagnification * 0.72;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
 
