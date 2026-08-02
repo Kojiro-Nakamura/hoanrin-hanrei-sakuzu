@@ -10,6 +10,9 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const extMinY = -(viewBox.y + viewBox.h) * EXPORT_SCALE;
     const extMaxY = -viewBox.y * EXPORT_SCALE;
     
+    const dimScale = 5000.0;
+    const ltScale = 1250.0;
+
     const cx = (extMinX + extMaxX) / 2.0;
     const cy = (extMinY + extMaxY) / 2.0;
 
@@ -23,25 +26,6 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const limMaxXStr = (cx + 16000000.0).toFixed(4);
     const limMinYStr = (cy - 9000000.0).toFixed(4);
     const limMaxYStr = (cy + 9000000.0).toFixed(4);
-    
-    const extMinXStr = extMinX.toFixed(4);
-    const extMinYStr = extMinY.toFixed(4);
-    const extMaxXStr = extMaxX.toFixed(4);
-    const extMaxYStr = extMaxY.toFixed(4);
-    
-    const cx = (extMinX + extMaxX) / 2.0;
-    const cy = (extMinY + extMaxY) / 2.0;
-
-    // Create a massive paper limit (10m x 10m) so that the geometry (usually < 10km)
-    // easily fits inside the limits. If geometry exceeds limits, Zuno RAPID auto-shrinks scale.
-    const pLimMaxXStr = "10000.0";
-    const pLimMaxYStr = "10000.0";
-    
-    // Scale is 5000, so 10000mm paper = 50,000,000mm model limit (50km).
-    const limMinXStr = (cx - 25000000.0).toFixed(4);
-    const limMaxXStr = (cx + 25000000.0).toFixed(4);
-    const limMinYStr = (cy - 25000000.0).toFixed(4);
-    const limMaxYStr = (cy + 25000000.0).toFixed(4);
     
     const extMinXStr = extMinX.toFixed(4);
     const extMinYStr = extMinY.toFixed(4);
