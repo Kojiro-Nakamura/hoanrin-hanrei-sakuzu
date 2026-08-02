@@ -87,12 +87,12 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
        blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
     };
 
-    addDecoBlock("DECO_HIGE", `  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n0.0\r\n 31\r\n0.0\r\n`);
+    addDecoBlock("DECO_HIGE", `  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n 11\r\n1000.0\r\n 21\r\n0.0\r\n 31\r\n0.0\r\n`);
     addDecoBlock("DECO_TRIANGLE", dxfCreateLines([{x: 1.0, y: 0.0}, {x: -0.5, y: -0.866}, {x: -0.5, y: 0.866}], true, "0", 0));
-    addDecoBlock("DECO_CROSS", `  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n-1.0\r\n 20\r\n1.0\r\n 30\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n-1.0\r\n 31\r\n0.0\r\n  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n-1.0\r\n 20\r\n-1.0\r\n 30\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 31\r\n0.0\r\n`);
+    addDecoBlock("DECO_CROSS", `  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n-1000.0\r\n 20\r\n1000.0\r\n 30\r\n0.0\r\n 11\r\n1000.0\r\n 21\r\n-1000.0\r\n 31\r\n0.0\r\n  0\r\nLINE\r\n  8\r\n0\r\n 10\r\n-1000.0\r\n 20\r\n-1000.0\r\n 30\r\n0.0\r\n 11\r\n1000.0\r\n 21\r\n1000.0\r\n 31\r\n0.0\r\n`);
     addDecoBlock("DECO_SOLID_CIRCLE", dxfCreateCircle(0, 0, 1.0, "0", 7));
     addDecoBlock("DECO_ANGLE_BRACKET", dxfCreateLines([{x:-0.8, y:0.4}, {x:-1.0, y:0.0}, {x:-0.8, y:-0.4}], false, "0", 0) + dxfCreateLines([{x:0.8, y:0.4}, {x:1.0, y:0.0}, {x:0.8, y:-0.4}], false, "0", 0));
-    addDecoBlock("DECO_MEGANE", dxfCreateCircle(-1.5, 0, 0.25, "0", 5) + dxfCreateCircle(1.5, 0, 0.25, "0", 5) + `  0\r\nARC\r\n  8\r\n0\r\n 10\r\n0.0\r\n 20\r\n-1.3125\r\n 30\r\n0.0\r\n 40\r\n1.8125\r\n 50\r\n46.397\r\n 51\r\n133.603\r\n`);
+    addDecoBlock("DECO_MEGANE", dxfCreateCircle(-1.5, 0, 0.25, "0", 5) + dxfCreateCircle(1.5, 0, 0.25, "0", 5) + `  0\r\nARC\r\n  8\r\n0\r\n 10\r\n0.0\r\n 20\r\n-1312.5\r\n 30\r\n0.0\r\n 40\r\n1812.5\r\n 50\r\n46.397\r\n 51\r\n133.603\r\n`);
 
     let polyEntitiesDxf = "";
     const drawnLabels = new Set();

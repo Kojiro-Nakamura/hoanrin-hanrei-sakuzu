@@ -15,7 +15,7 @@ export const dxfCreateCircle = (cx, cy, r, layer="0", color=7) => {
 };
 
 export const dxfCreateInsert = (blockName, cx, cy, scale, angleDeg, layer="0", color=7) => {
-  cx *= EXPORT_SCALE; cy *= EXPORT_SCALE; scale *= EXPORT_SCALE;
+  cx *= EXPORT_SCALE; cy *= EXPORT_SCALE;
   return `  0\r\nINSERT\r\n  2\r\n${blockName}\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${cx.toFixed(4)}\r\n 20\r\n${(-cy).toFixed(4)}\r\n 30\r\n0.0\r\n 41\r\n${scale.toFixed(4)}\r\n 42\r\n${scale.toFixed(4)}\r\n 43\r\n1.0\r\n 50\r\n${(-angleDeg).toFixed(4)}\r\n`;
 };
 
