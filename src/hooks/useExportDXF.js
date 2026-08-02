@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import Encoding from 'encoding-japanese';
 import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCreatePath, dxfCreateLines } from '../utils/dxf';
 import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
@@ -128,7 +129,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                const startX = -totalW / 2, circleCx = startX + circleR, textStartX = startX + circleR * 2 + gap;
                const rectX = startX - fSize * 0.4, rectY = -fSize * 0.85, rectW = totalW + fSize * 0.8, rectH = fSize * 1.7;
                blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS_BG_FRAME", 7);
-               blockEntities += dxfCreateSolid 256);
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 256);
                blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateText(poly.chimoku.charAt(0), circleCx, 0, fSize * 0.75, "LABELS", poly.isCustom ? 4 : 7);
@@ -136,7 +137,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
              } else {
                const charW = fSize * 0.8, textW = poly.chiban.length * charW, rectW = textW + fSize, rectH = fSize * 1.5, rectX = -rectW / 2, rectY = -rectH / 2;
                blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS_BG_FRAME", 7);
-               blockEntities += dxfCreateSolid 256);
+               blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 256);
                blockEntities += dxfCreateText(poly.chiban, 0, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              }
              
@@ -170,7 +171,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       
       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${regionBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${regionBlockName}\r\n  1\r\n\r\n`;
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS_BG_FRAME", 7);
-      blocksDxf += dxfCreateSolid 256);
+      blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 256);
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
       blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
@@ -217,10 +218,11 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     });
 
     dxf += labelsEntitiesDxf + "  0\r\nENDSEC\r\n  0\r\nEOF\r\n";
-    // Normalize all newlines to strictly CRLF for strict CAD compatibility
-    const finalDxf = dxf.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
-    const blob = new Blob([finalDxf], { type: "application/dxf" });
-    const url = URL.createObjectURL(blob), a = document.createElement("a");
+      // Normalize all newlines to strictly CRLF for strict CAD compatibility
+      const finalDxf = dxf.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+      const sjisArray = Encoding.convert(finalDxf, { to: 'SJIS', type: 'array' });
+      const blob = new Blob([new Uint8Array(sjisArray)], { type: "application/dxf" });
+      const url = URL.createObjectURL(blob), a = document.createElement("a");
     a.href = url; a.download = (fileInfo?.name ? fileInfo.name.replace(".xml", "") : "export") + "_map.dxf";
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
   }, [currentPolygons, currentAppliedGroups, lines, viewBox.w, fileInfo, decorationScale, regionLabels, currentChibanOverrides]);

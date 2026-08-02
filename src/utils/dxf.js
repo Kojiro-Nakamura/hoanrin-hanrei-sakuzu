@@ -2,11 +2,7 @@ const EXPORT_SCALE = 1000.0;
 
 export const dxfCreateText = (text, x, y, height, layer="0", color=7) => {
   x *= EXPORT_SCALE; y *= EXPORT_SCALE; height *= EXPORT_SCALE;
-  const escapedText = String(text).split('').map(c => {
-    const code = c.charCodeAt(0);
-    return code > 127 ? '\\U+' + code.toString(16).toUpperCase().padStart(4, '0') : c;
-  }).join('');
-  return `  0\r\nTEXT\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${x.toFixed(4)}\r\n 20\r\n${(-y).toFixed(4)}\r\n 30\r\n0.0\r\n 40\r\n${height.toFixed(4)}\r\n  1\r\n${escapedText}\r\n 72\r\n1\r\n 11\r\n${x.toFixed(4)}\r\n 21\r\n${(-y).toFixed(4)}\r\n 31\r\n0.0\r\n 73\r\n2\r\n`; 
+    return `  0\r\nTEXT\r\n  8\r\n${layer}\r\n 62\r\n${color}\r\n 10\r\n${x.toFixed(4)}\r\n 20\r\n${(-y).toFixed(4)}\r\n 30\r\n0.0\r\n 40\r\n${height.toFixed(4)}\r\n  1\r\n${text}\r\n 72\r\n1\r\n 11\r\n${x.toFixed(4)}\r\n 21\r\n${(-y).toFixed(4)}\r\n 31\r\n0.0\r\n 73\r\n2\r\n`; 
 };
 
 export const dxfCreateCircle = (cx, cy, r, layer="0", color=7) => {
