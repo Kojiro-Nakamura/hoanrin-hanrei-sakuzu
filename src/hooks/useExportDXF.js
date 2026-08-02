@@ -13,13 +13,24 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const dimScale = 5000.0;
     const ltScale = 1250.0;
     
-    // Hardcode limits exactly as Zuno RAPID 1/5000 sample
-    const extMinXStr = "0.0";
-    const extMinYStr = "0.0";
-    const extMaxXStr = "32000000.0";
-    const extMaxYStr = "18000000.0";
-    const pLimMaxXStr = "6400.0";
-    const pLimMaxYStr = "3600.0";
+    const cx = (extMinX + extMaxX) / 2.0;
+    const cy = (extMinY + extMaxY) / 2.0;
+
+    // Create a massive paper limit (10m x 10m) so that the geometry (usually < 10km)
+    // easily fits inside the limits. If geometry exceeds limits, Zuno RAPID auto-shrinks scale.
+    const pLimMaxXStr = "10000.0";
+    const pLimMaxYStr = "10000.0";
+    
+    // Scale is 5000, so 10000mm paper = 50,000,000mm model limit (50km).
+    const limMinXStr = (cx - 25000000.0).toFixed(4);
+    const limMaxXStr = (cx + 25000000.0).toFixed(4);
+    const limMinYStr = (cy - 25000000.0).toFixed(4);
+    const limMaxYStr = (cy + 25000000.0).toFixed(4);
+    
+    const extMinXStr = extMinX.toFixed(4);
+    const extMinYStr = extMinY.toFixed(4);
+    const extMaxXStr = extMaxX.toFixed(4);
+    const extMaxYStr = extMaxY.toFixed(4);
 
     let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n" +
       "  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n" +
@@ -28,8 +39,8 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       "  9\r\n$INSBASE\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
       `  9\r\n$EXTMIN\r\n 10\r\n${extMinXStr}\r\n 20\r\n${extMinYStr}\r\n 30\r\n0.0\r\n` +
       `  9\r\n$EXTMAX\r\n 10\r\n${extMaxXStr}\r\n 20\r\n${extMaxYStr}\r\n 30\r\n0.0\r\n` +
-      `  9\r\n$LIMMIN\r\n 10\r\n${extMinXStr}\r\n 20\r\n${extMinYStr}\r\n` +
-      `  9\r\n$LIMMAX\r\n 10\r\n${extMaxXStr}\r\n 20\r\n${extMaxYStr}\r\n` +
+      `  9\r\n$LIMMIN\r\n 10\r\n${limMinXStr}\r\n 20\r\n${limMinYStr}\r\n` +
+      `  9\r\n$LIMMAX\r\n 10\r\n${limMaxXStr}\r\n 20\r\n${limMaxYStr}\r\n` +
       "  9\r\n$ORTHOMODE\r\n 70\r\n0\r\n" +
       "  9\r\n$REGENMODE\r\n 70\r\n1\r\n" +
       "  9\r\n$FILLMODE\r\n 70\r\n1\r\n" +
