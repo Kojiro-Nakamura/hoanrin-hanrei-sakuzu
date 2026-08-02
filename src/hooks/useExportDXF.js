@@ -16,13 +16,16 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const cx = (extMinX + extMaxX) / 2.0;
     const cy = (extMinY + extMaxY) / 2.0;
     
-    const limMinX = extMinX;
-    const limMaxX = extMaxX;
-    const limMinY = extMinY;
-    const limMaxY = extMaxY;
+    // Hardcode to user's sample size (6400 x 3600 at 1/5000 = 32000000 x 18000000)
+    const limWidth = 32000000.0;
+    const limHeight = 18000000.0;
+    const limMinX = cx - limWidth / 2.0;
+    const limMaxX = cx + limWidth / 2.0;
+    const limMinY = cy - limHeight / 2.0;
+    const limMaxY = cy + limHeight / 2.0;
     
-    const pLimMaxX = (extMaxX - extMinX) / dimScale;
-    const pLimMaxY = (extMaxY - extMinY) / dimScale;
+    const pLimMaxX = 6400.0;
+    const pLimMaxY = 3600.0;
 
     let dxf = "  0\r\nSECTION\r\n  2\r\nHEADER\r\n" +
       "  9\r\n$ACADVER\r\n  1\r\nAC1009\r\n" +
@@ -49,9 +52,9 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       `  9\r\n$DIMSCALE\r\n 40\r\n${dimScale.toFixed(1)}\r\n` +
       "  9\r\n$DIMSTYLE\r\n  2\r\nSTANDARD\r\n" +
       "  9\r\n$PEXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
-        "  9\r\n$PEXTMAX\r\n 10\r\n" + pLimMaxX.toFixed(4) + "\r\n 20\r\n" + pLimMaxY.toFixed(4) + "\r\n 30\r\n0.0\r\n" +
-        "  9\r\n$PLIMMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n" +
-        "  9\r\n$PLIMMAX\r\n 10\r\n" + pLimMaxX.toFixed(4) + "\r\n 20\r\n" + pLimMaxY.toFixed(4) + "\r\n" +
+      `  9\r\n$PEXTMAX\r\n 10\r\n${pLimMaxX.toFixed(4)}\r\n 20\r\n${pLimMaxY.toFixed(4)}\r\n 30\r\n0.0\r\n` +
+      "  9\r\n$PLIMMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n" +
+      `  9\r\n$PLIMMAX\r\n 10\r\n${pLimMaxX.toFixed(4)}\r\n 20\r\n${pLimMaxY.toFixed(4)}\r\n` +
       "  9\r\n$MEASUREMENT\r\n 70\r\n1\r\n" +
       "  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
     
@@ -168,7 +171,6 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     dxf += "  0\r\nENDTAB\r\n  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nBLOCKS\r\n";
     dxf += blocksDxf;
     dxf += "  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nENTITIES\r\n";
-    dxf += `  0\r\nLINE\r\n  8\r\nORIGIN_CROSS\r\n 62\r\n1\r\n 10\r\n-50.0000\r\n 20\r\n0.0000\r\n 30\r\n0.0\r\n 11\r\n50.0000\r\n 21\r\n0.0000\r\n 31\r\n0.0\r\n  0\r\nLINE\r\n  8\r\nORIGIN_CROSS\r\n 62\r\n1\r\n 10\r\n0.0000\r\n 20\r\n-50.0000\r\n 30\r\n0.0\r\n 11\r\n0.0000\r\n 21\r\n50.0000\r\n 31\r\n0.0\r\n`;
 
     lines.forEach(line => {
       dxf += dxfCreateLines(line, false, "BASE_LINES", 8);
