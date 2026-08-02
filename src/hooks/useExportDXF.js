@@ -10,11 +10,8 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     const extMinY = -(viewBox.y + viewBox.h) * EXPORT_SCALE;
     const extMaxY = -viewBox.y * EXPORT_SCALE;
     
-    const rawScale = (viewBox.w * EXPORT_SCALE) / 420.0;
-    const scaleList = [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000];
-    let dimScale = scaleList.find(s => s >= rawScale);
-    if (!dimScale) dimScale = rawScale > 0 ? rawScale : 1000.0;
-    const ltScale = dimScale / 4.0;
+    const dimScale = 5000.0;
+    const ltScale = 1250.0;
     
     const cx = (extMinX + extMaxX) / 2.0;
     const cy = (extMinY + extMaxY) / 2.0;
