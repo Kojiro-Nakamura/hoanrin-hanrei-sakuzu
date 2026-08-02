@@ -37,10 +37,6 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       "  9\r\n$ACADMAINTVER\r\n 70\r\n9\r\n" +
       "  9\r\n$DWGCODEPAGE\r\n  3\r\nANSI_932\r\n" +
       "  9\r\n$INSBASE\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
-      `  9\r\n$EXTMIN\r\n 10\r\n${extMinXStr}\r\n 20\r\n${extMinYStr}\r\n 30\r\n0.0\r\n` +
-      `  9\r\n$EXTMAX\r\n 10\r\n${extMaxXStr}\r\n 20\r\n${extMaxYStr}\r\n 30\r\n0.0\r\n` +
-      `  9\r\n$LIMMIN\r\n 10\r\n${limMinXStr}\r\n 20\r\n${limMinYStr}\r\n` +
-      `  9\r\n$LIMMAX\r\n 10\r\n${limMaxXStr}\r\n 20\r\n${limMaxYStr}\r\n` +
       "  9\r\n$ORTHOMODE\r\n 70\r\n0\r\n" +
       "  9\r\n$REGENMODE\r\n 70\r\n1\r\n" +
       "  9\r\n$FILLMODE\r\n 70\r\n1\r\n" +
@@ -56,10 +52,6 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       "  9\r\n$CELTSCALE\r\n 40\r\n1.0\r\n" +
       `  9\r\n$DIMSCALE\r\n 40\r\n${dimScale.toFixed(1)}\r\n` +
       "  9\r\n$DIMSTYLE\r\n  2\r\nSTANDARD\r\n" +
-      "  9\r\n$PEXTMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 30\r\n0.0\r\n" +
-      `  9\r\n$PEXTMAX\r\n 10\r\n${pLimMaxXStr}\r\n 20\r\n${pLimMaxYStr}\r\n 30\r\n0.0\r\n` +
-      "  9\r\n$PLIMMIN\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n" +
-      `  9\r\n$PLIMMAX\r\n 10\r\n${pLimMaxXStr}\r\n 20\r\n${pLimMaxYStr}\r\n` +
       "  9\r\n$MEASUREMENT\r\n 70\r\n1\r\n" +
       "  0\r\nENDSEC\r\n  0\r\nSECTION\r\n  2\r\nTABLES\r\n  0\r\nTABLE\r\n  2\r\nVPORT\r\n  70\r\n1\r\n  0\r\nVPORT\r\n  2\r\n*ACTIVE\r\n  70\r\n0\r\n 10\r\n0.0\r\n 20\r\n0.0\r\n 11\r\n1.0\r\n 21\r\n1.0\r\n 12\r\n50.0\r\n 22\r\n50.0\r\n 13\r\n0.0\r\n 23\r\n0.0\r\n 14\r\n0.5\r\n 24\r\n0.5\r\n 15\r\n0.5\r\n 25\r\n0.5\r\n 16\r\n0.0\r\n 26\r\n0.0\r\n 36\r\n1.0\r\n 17\r\n0.0\r\n 27\r\n0.0\r\n 37\r\n0.0\r\n 40\r\n100.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLTYPE\r\n  70\r\n1\r\n  0\r\nLTYPE\r\n  2\r\nCONTINUOUS\r\n  70\r\n0\r\n  3\r\nSolid line\r\n 72\r\n65\r\n 73\r\n0\r\n 40\r\n0.0\r\n  0\r\nENDTAB\r\n  0\r\nTABLE\r\n  2\r\nLAYER\r\n  70\r\n10\r\n";
     
@@ -67,16 +59,18 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
     addLayer("BASE_LINES", 8);
     addLayer("POLYGONS", 3);
     addLayer("POLYGONS_CUSTOM", 4);
+    addLayer("LABELS_BG_FRAME", 7);
+    addLayer("LABELS_BG", 7);
     addLayer("CHIBAN_LABELS", 7);
-    addLayer("REGION_LABELS", 7);
+    addLayer("LABELS", 7);
+    addLayer("REGION_LABELS_BG_FRAME", 7);
     addLayer("REGION_LABELS_BG", 7);
+    addLayer("REGION_LABELS", 7);
     addLayer("POLYGONS_STYLE", 4);
     addLayer("POLYGONS_STYLE_INNER", 4);
     addLayer("POLYGONS_STYLE_INNER2", 4);
     addLayer("DECORATIONS_HIGE", 1);
     addLayer("DECORATIONS_SHAPE", 5);
-    addLayer("LABELS", 7);
-    addLayer("LABELS_BG", 7);
     dxf += "  0\r\nENDTAB\r\n" +
            "  0\r\nTABLE\r\n  2\r\nSTYLE\r\n  70\r\n1\r\n  0\r\nSTYLE\r\n  2\r\nSTANDARD\r\n  70\r\n0\r\n 40\r\n0.0\r\n 41\r\n1.0\r\n 50\r\n0.0\r\n 71\r\n0\r\n 42\r\n0.2\r\n  3\r\ntxt\r\n  4\r\nbigfont\r\n  0\r\nENDTAB\r\n" +
            "  0\r\nTABLE\r\n  2\r\nVIEW\r\n  70\r\n0\r\n  0\r\nENDTAB\r\n" +
@@ -125,6 +119,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                const charW = fSize * 0.55, chibanW = poly.chiban.length * charW, circleR = fSize * 0.65, gap = fSize * 0.2, totalW = circleR * 2 + gap + chibanW;
                const startX = -totalW / 2, circleCx = startX + circleR, textStartX = startX + circleR * 2 + gap;
                const rectX = startX - fSize * 0.4, rectY = -fSize * 0.85, rectW = totalW + fSize * 0.8, rectH = fSize * 1.7;
+               blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS_BG_FRAME", 7);
                blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 7);
                blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS", poly.isCustom ? 4 : 7);
                blockEntities += dxfCreateCircle(circleCx, 0, circleR, "LABELS", poly.isCustom ? 4 : 7);
@@ -132,6 +127,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
                blockEntities += dxfCreateText(poly.chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              } else {
                const charW = fSize * 0.8, textW = poly.chiban.length * charW, rectW = textW + fSize, rectH = fSize * 1.5, rectX = -rectW / 2, rectY = -rectH / 2;
+               blockEntities += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS_BG_FRAME", 7);
                blockEntities += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 7);
                blockEntities += dxfCreateText(poly.chiban, 0, 0, fSize, "LABELS", poly.isCustom ? 4 : 7);
              }
@@ -165,6 +161,7 @@ export function useExportDXF({ currentPolygons, currentAppliedGroups, lines, vie
       const regionBlockName = `REGION_LABEL_BLOCK_${idx}`;
       
       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${regionBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${regionBlockName}\r\n  1\r\n\r\n`;
+      blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS_BG_FRAME", 7);
       blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "REGION_LABELS_BG", 7);
       blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "REGION_LABELS", 7);
       blocksDxf += dxfCreateText(text, 0, 0, fSize, "REGION_LABELS", 7); 
