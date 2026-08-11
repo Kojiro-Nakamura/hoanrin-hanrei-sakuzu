@@ -124,7 +124,7 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDecoId, on
              onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'move'); } }}
              style={{ cursor: isInteractive ? 'move' : 'default', pointerEvents: isInteractive ? 'auto' : 'none' }}>
             {isInteractive && <path d={pathStr} fill="transparent" stroke="transparent" strokeWidth={sw * 20} />}
-            <path d={pathStr} fill={d.type === 'solid_circle' ? "#3f3f46" : "none"} stroke={d.type==='hige'?"#dc2626":d.type==='solid_circle'?"#3f3f46":"#2563eb"} strokeWidth={d.type==='hige'?higeSw:shapeSw} strokeLinecap="round" strokeLinejoin="round" />
+            <path d={pathStr} fill={d.type === 'solid_circle' ? "#3f3f46" : "none"} stroke={d.type==='hige'?"#dc2626":d.type==='solid_circle'?"#3f3f46":d.type==='triangle'?"#10b981":"#2563eb"} strokeWidth={d.type==='hige'?higeSw:shapeSw} strokeLinecap="round" strokeLinejoin="round" />
             {isActive && isInteractive && (
               <path d={pathStr} fill="none" stroke="#ca8a04" strokeWidth={sw * 3.5} opacity="0.4" pointerEvents="none" />
             )}
