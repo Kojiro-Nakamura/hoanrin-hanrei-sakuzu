@@ -236,28 +236,32 @@ export const getSegmentIntersection = (p1, p2, p3, p4) => {
 };
 
 export const removeSelfIntersections = (pts, isClosed) => {
-  if (pts.length < 4 || !isClosed) return pts;
-  let result = [...pts], hasIntersection = true, maxIters = 20; 
-  
-  while (hasIntersection && maxIters > 0) {
-    hasIntersection = false; maxIters--;
-    for (let i = 0; i < result.length - 3; i++) {
-      for (let j = i + 2; j < result.length - 1; j++) {
-        if (i === 0 && j === result.length - 2) continue;
-        const p1 = result[i], p2 = result[i+1], p3 = result[j], p4 = result[j+1];
-        const inter = getSegmentIntersection(p1, p2, p3, p4);
-        if (inter && inter.onSegment1 && inter.onSegment2) {
-          const loop1 = [...result.slice(0, i + 1), {x: inter.x, y: inter.y}, ...result.slice(j + 1)];
-          const loop2 = [{x: inter.x, y: inter.y}, ...result.slice(i + 1, j + 1)];
-          result = Math.abs(signedArea(loop1)) > Math.abs(signedArea(loop2)) ? loop1 : loop2;
-          hasIntersection = true; break;
+    if (pts.length < 4) return pts;
+    let result = [...pts], hasIntersection = true, maxIters = 20; 
+    
+    while (hasIntersection && maxIters > 0) {
+      hasIntersection = false; maxIters--;
+      for (let i = 0; i < result.length - 3; i++) {
+        for (let j = i + 2; j < result.length - 1; j++) {
+          if (isClosed && i === 0 && j === result.length - 2) continue;
+          const p1 = result[i], p2 = result[i+1], p3 = result[j], p4 = result[j+1];
+          const inter = getSegmentIntersection(p1, p2, p3, p4);
+          if (inter && inter.onSegment1 && inter.onSegment2) {
+            const loop1 = [...result.slice(0, i + 1), {x: inter.x, y: inter.y}, ...result.slice(j + 1)];
+            if (isClosed) {
+              const loop2 = [{x: inter.x, y: inter.y}, ...result.slice(i + 1, j + 1)];
+              result = Math.abs(signedArea(loop1)) > Math.abs(signedArea(loop2)) ? loop1 : loop2;
+            } else {
+              result = loop1;
+            }
+            hasIntersection = true; break;
+          }
         }
+        if (hasIntersection) break;
       }
-      if (hasIntersection) break;
     }
-  }
-  return result;
-};
+    return result;
+  };
 
 export const splitPolygons = (targetPolygons, splitLinePts, thickness = 0.05) => {
   const splitterBoxes = [];
