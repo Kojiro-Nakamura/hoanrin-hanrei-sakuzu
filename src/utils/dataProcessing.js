@@ -43,11 +43,31 @@ export const offsetRingByEdges = (ring, offset, isClosed, isCW, normalSign) => {
     };
   });
 
-  const offsetPoints = [];
-  if (!isClosed) offsetPoints.push(offsetLines[0].p1);
+  let lines = [...offsetLines];
+  let changed = true, maxIters = 50;
+  while (changed && lines.length > (isClosed ? 2 : 1) && maxIters > 0) {
+    changed = false; maxIters--;
+    for (let i = 0; i < lines.length; i++) {
+      if (!isClosed && (i === 0 || i === lines.length - 1)) continue;
+      const prevLine = lines[isClosed ? (i - 1 + lines.length) % lines.length : i - 1];
+      const nextLine = lines[isClosed ? (i + 1) % lines.length : i + 1];
+      
+      const interPrev = intersectLinesT(prevLine.p1, prevLine.v, lines[i].p1, lines[i].v);
+      const interNext = intersectLinesT(lines[i].p1, lines[i].v, nextLine.p1, nextLine.v);
+      
+      if (interPrev && interNext && interPrev.t2 > interNext.t1 + 1e-4) {
+        lines.splice(i, 1);
+        changed = true;
+        break;
+      }
+    }
+  }
 
-  for (let i = 0; i < offsetLines.length; i++) {
-    const line1 = offsetLines[i], line2 = isClosed && i === offsetLines.length - 1 ? offsetLines[0] : offsetLines[i+1];
+  const offsetPoints = [];
+  if (!isClosed) offsetPoints.push(lines[0].p1);
+
+  for (let i = 0; i < lines.length; i++) {
+    const line1 = lines[i], line2 = isClosed && i === lines.length - 1 ? lines[0] : lines[i+1];
     if (!line2 && !isClosed) { offsetPoints.push(line1.p2); break; }
 
     const inter = intersectLinesT(line1.p1, line1.v, line2.p1, line2.v);
