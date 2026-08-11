@@ -227,26 +227,34 @@ export const intersectLinesT = (p1, v1, p2, v2) => {
 };
 
 export const getSegmentIntersection = (p1, p2, p3, p4) => {
-  const det = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
-  if (Math.abs(det) < 1e-8) return null; 
-  const dx = p3.x - p1.x, dy = p3.y - p1.y;
-  const t1 = (dx * (p4.y - p3.y) - dy * (p4.x - p3.x)) / det;
-  const t2 = (dx * (p2.y - p1.y) - dy * (p2.x - p1.x)) / det;
-  return { x: p1.x + t1 * (p2.x - p1.x), y: p1.y + t1 * (p2.y - p1.y), onSegment1: t1 >= -1e-5 && t1 <= 1 + 1e-5, onSegment2: t2 >= -1e-5 && t2 <= 1 + 1e-5 };
-};
+    const det = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+    if (Math.abs(det) < 1e-8) return null; 
+    const dx = p3.x - p1.x, dy = p3.y - p1.y;
+    const t1 = (dx * (p4.y - p3.y) - dy * (p4.x - p3.x)) / det;
+    const t2 = (dx * (p2.y - p1.y) - dy * (p2.x - p1.x)) / det;
+    return { x: p1.x + t1 * (p2.x - p1.x), y: p1.y + t1 * (p2.y - p1.y), onSegment1: t1 >= -1e-5 && t1 <= 1 + 1e-5, onSegment2: t2 >= -1e-5 && t2 <= 1 + 1e-5, t1, t2 };
+  };
 
 export const removeSelfIntersections = (pts, isClosed) => {
     if (pts.length < 4) return pts;
-    let result = [...pts], hasIntersection = true, maxIters = 20; 
+    let result = [...pts];
+    if (isClosed && result.length > 0) {
+      result.push({ x: result[0].x, y: result[0].y });
+    }
+    
+    let hasIntersection = true, maxIters = 20; 
     
     while (hasIntersection && maxIters > 0) {
       hasIntersection = false; maxIters--;
       for (let i = 0; i < result.length - 3; i++) {
         for (let j = i + 2; j < result.length - 1; j++) {
-          if (isClosed && i === 0 && j === result.length - 2) continue;
           const p1 = result[i], p2 = result[i+1], p3 = result[j], p4 = result[j+1];
           const inter = getSegmentIntersection(p1, p2, p3, p4);
           if (inter && inter.onSegment1 && inter.onSegment2) {
+            const isEndpoint1 = inter.t1 < 1e-4 || inter.t1 > 1 - 1e-4;
+            const isEndpoint2 = inter.t2 < 1e-4 || inter.t2 > 1 - 1e-4;
+            if (isEndpoint1 && isEndpoint2) continue; // Just a shared vertex
+            
             const loop1 = [...result.slice(0, i + 1), {x: inter.x, y: inter.y}, ...result.slice(j + 1)];
             if (isClosed) {
               const loop2 = [{x: inter.x, y: inter.y}, ...result.slice(i + 1, j + 1)];
@@ -259,6 +267,12 @@ export const removeSelfIntersections = (pts, isClosed) => {
         }
         if (hasIntersection) break;
       }
+    }
+    
+    if (isClosed && result.length > 0) {
+      // The drawing logic in generateOffsetRings will add a Z anyway, but let's keep the last point if it matches the first.
+      // Actually, generateOffsetRings relies on the array length. We can just leave it or pop it.
+      // If we leave it, the Z command just goes from P0 to P0, which is fine.
     }
     return result;
   };
