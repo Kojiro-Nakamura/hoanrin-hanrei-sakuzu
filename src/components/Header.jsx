@@ -1,7 +1,7 @@
 import React from 'react';
-import { Map as MapIcon, Home, Download, UploadCloud } from 'lucide-react';
+import { Map as MapIcon, Home, Download, UploadCloud, Undo, Redo } from 'lucide-react';
 
-export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExportJSON, onLoadFile }) => (
+export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExportJSON, onLoadFile, onUndo, onRedo, canUndo, canRedo }) => (
   <header className="flex items-center justify-between px-6 py-3 bg-white border-b border-neutral-200 shadow-sm z-10 shrink-0">
     <div className="flex items-center gap-2 text-indigo-700"><MapIcon className="w-6 h-6" /><h1 className="text-lg font-bold tracking-tight">保安林凡例作図ツール</h1></div>
     {fileInfo && (
@@ -18,6 +18,9 @@ export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExp
           <UploadCloud className="w-4 h-4" /> 追加読込
           <input type="file" multiple className="hidden" accept=".xml,.kml,.json" onChange={e => { Array.from(e.target.files).forEach(f => onLoadFile(f, true)); e.target.value = ''; }} />
         </label>
+        <div className="w-px h-6 bg-neutral-300 mx-1"></div>
+        <button onClick={onUndo} disabled={!canUndo} className={`flex items-center justify-center p-1.5 rounded-md transition-colors border shadow-sm ${!canUndo ? 'opacity-30 cursor-not-allowed bg-neutral-100 border-neutral-200' : 'bg-white hover:bg-neutral-50 border-neutral-300 text-neutral-700'}`} title="元に戻す(Ctrl+Z)"><Undo className="w-4 h-4" /></button>
+        <button onClick={onRedo} disabled={!canRedo} className={`flex items-center justify-center p-1.5 rounded-md transition-colors border shadow-sm ${!canRedo ? 'opacity-30 cursor-not-allowed bg-neutral-100 border-neutral-200' : 'bg-white hover:bg-neutral-50 border-neutral-300 text-neutral-700'}`} title="やり直し(Ctrl+Y)"><Redo className="w-4 h-4" /></button>
         <button onClick={onReset} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 rounded-md transition-colors text-sm font-bold shadow-sm" title="作業をすべて破棄してリセットする">
           <Home className="w-4 h-4"/> リセット
         </button>

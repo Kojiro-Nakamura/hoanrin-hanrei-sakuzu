@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home } from 'lucide-react';
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
@@ -605,7 +605,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-full absolute inset-0 w-full bg-neutral-100 text-neutral-800 font-sans overflow-hidden">
-      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onExportJSON={exportToJSON} onLoadFile={loadFile} />
+      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onExportJSON={exportToJSON} onLoadFile={loadFile} onUndo={handleUndo} onRedo={handleRedo} canUndo={historyIndex > 0} canRedo={historyIndex < history.length - 1} />
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -716,12 +716,7 @@ export default function App() {
                   </div>
                 )}
               </div>
-
-              <div className="flex items-center gap-2">
-                <button onClick={handleUndo} disabled={historyIndex <= 0} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex <= 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="元に戻す (Ctrl+Z)"><Undo className="w-5 h-5" /></button>
-                <button onClick={handleRedo} disabled={historyIndex >= history.length - 1} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 bg-white ${historyIndex >= history.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-neutral-50 text-neutral-700'}`} title="やり直す (Ctrl+Y)"><Redo className="w-5 h-5" /></button>
-              </div>
-            </div>
+</div>
 
             <ToolPanel 
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
@@ -738,3 +733,4 @@ export default function App() {
     </div>
   );
 }
+
