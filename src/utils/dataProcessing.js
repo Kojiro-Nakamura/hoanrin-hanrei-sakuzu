@@ -72,14 +72,20 @@ export const offsetRingByEdges = (ring, offset, isClosed, isCW, normalSign) => {
 
     const inter = intersectLinesT(line1.p1, line1.v, line2.p1, line2.v);
     if (inter) {
-      const distP = Math.hypot(inter.x - line1.orgEdge.p2.x, inter.y - line1.orgEdge.p2.y);
-      const dot = line1.v.x * line2.v.x + line1.v.y * line2.v.y;
+      const isAdjacent = Math.hypot(line1.orgEdge.p2.x - line2.orgEdge.p1.x, line1.orgEdge.p2.y - line2.orgEdge.p1.y) < 1e-4;
       
-      const cross = line1.v.x * line2.v.y - line1.v.y * line2.v.x;
-      const isExpanding = (cross * (isCW ? 1 : -1)) < 0;
+      if (isAdjacent) {
+        const distP = Math.hypot(inter.x - line1.orgEdge.p2.x, inter.y - line1.orgEdge.p2.y);
+        const dot = line1.v.x * line2.v.x + line1.v.y * line2.v.y;
+        
+        const cross = line1.v.x * line2.v.y - line1.v.y * line2.v.x;
+        const isExpanding = (cross * (isCW ? 1 : -1)) < 0;
 
-      if (isExpanding && (dot < -0.95 || distP > absOffset * 3.0)) { 
-        offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); 
+        if (isExpanding && (dot < -0.95 || distP > absOffset * 3.0)) { 
+          offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); 
+        } else {
+          offsetPoints.push(inter);
+        }
       } else {
         offsetPoints.push(inter);
       }
