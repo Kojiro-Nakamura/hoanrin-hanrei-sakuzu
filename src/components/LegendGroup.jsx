@@ -86,7 +86,7 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDecoId, on
       {renderBaseLine()}
       
       {decorations && decorations.map(d => {
-        const isActive = activeDeco?.type === 'deco' && activeDeco?.groupId === group.id && activeDeco?.decoId === d.id;
+        const isActive = selectedDeco?.type === 'deco' && selectedDeco?.groupId === group.id && selectedDeco?.decoId === d.id;
         const isInteractive = mode === 'edit_deco';
         
         const isDragOverride = dragDecoOverride && dragDecoOverride.groupId === group.id && dragDecoOverride.decoId === d.id;
@@ -128,7 +128,7 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDecoId, on
             {isActive && isInteractive && (
               <path d={pathStr} fill="none" stroke="#ca8a04" strokeWidth={sw * 3.5} opacity="0.4" pointerEvents="none" />
             )}
-            {isInteractive && selectedDecoId === d.id && (
+            {isInteractive && selectedDeco?.decoId === d.id && (
               <g>
                  <line x1={d.r || d.hLen || d.scale*2.5} y1={0} x2={(d.r || d.hLen || d.scale*2.5) + scale/60} y2={0} stroke="#10b981" strokeWidth={sw*1.5} strokeDasharray={`${sw*2} ${sw*2}`} pointerEvents="none" />
                  <circle cx={(d.r || d.hLen || d.scale*2.5) + scale/60} cy={0} r={scale/150} fill="#10b981" stroke="#ffffff" strokeWidth={sw*0.5} cursor="crosshair" className="rotate-handle" onMouseDown={(e) => { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'rotate'); }} />

@@ -48,7 +48,7 @@ export default function App() {
   const [dragDecoOverride, setDragDecoOverride] = useState(null);
 
   const [activeDeco, setActiveDeco] = useState(null); 
-  const [selectedDecoId, setSelectedDecoId] = useState(null); 
+  const [selectedDeco, setSelectedDeco] = useState(null); 
 
   const { viewBox, svgRef, isDragging, handlers: panZoomHandlers, fitToBoundingBox, wasDragged } = usePanZoom(mode);
 
@@ -238,15 +238,17 @@ export default function App() {
       startCx: deco.cx, startCy: deco.cy, startAngle: deco.angle || 0,
       startMouseX: pt.x, startMouseY: pt.y 
     });
-    setSelectedDecoId(deco.id);
+    setSelectedDeco({ type: "deco", groupId, decoId: deco.id });
   }, [getSvgPoint]);
 
   const handleRegionLabelMouseDown = useCallback((e, regionKey, dragMode, center) => {
     setActiveDeco({ type: 'region_label', id: regionKey, dragMode, startCx: center.x, startCy: center.y });
+    setSelectedDeco({ type: 'region_label', id: regionKey });
   }, []);
 
   const handleChibanLabelMouseDown = useCallback((e, polyId, dragMode, center) => {
     setActiveDeco({ type: 'chiban_label', id: polyId, dragMode, startCx: center.x, startCy: center.y });
+    setSelectedDeco({ type: 'chiban_label', id: polyId });
   }, []);
 
   const handleSvgMouseMove = useCallback((e) => {
@@ -384,7 +386,7 @@ export default function App() {
 
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
-    setSelectedDecoId(null);
+    setSelectedDeco(null);
     if (mode === 'draw') {
       const pt = getSvgPoint(e); if (!pt) return;
       if (drawingPts.length >= 3 && snappedPt && snappedPt.type === 'start') {
@@ -423,7 +425,7 @@ export default function App() {
     setDrawingPts([]); setSnappedPt(null); setSelectedPolygons([]);
     if (mode !== 'edit_deco') {
       setActiveDeco(null);
-      setSelectedDecoId(null);
+      setSelectedDeco(null);
     }
   }, [mode]);
 
@@ -460,7 +462,7 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); handleUndo(); }
       if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); handleRedo(); }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        if (mode === 'edit_deco' && activeDeco) {
+        if (mode === 'edit_deco' && selectedDeco) {
           handleDeleteActiveDeco();
         } else if (selectedPolygons.length > 0) {
           handleRemoveFeatures();
@@ -469,7 +471,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, finishDrawing, handleUndo, handleRedo, activeDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
+  }, [mode, finishDrawing, handleUndo, handleRedo, selectedDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
   const labelFontSize = (viewBox.w / 150) * screenMagnification * 0.72;
@@ -497,7 +499,7 @@ export default function App() {
       const rectX = finalCx - rectW / 2;
       const rectY = finalCy - rectH / 2;
       
-      const isActive = activeDeco?.type === 'region_label' && activeDeco?.id === region.key, isInteractive = mode === 'edit_deco';
+      const isActive = selectedDeco?.type === 'region_label' && selectedDeco?.id === region.key, isInteractive = mode === 'edit_deco';
 
       return (
         <g key={region.key} pointerEvents={isInteractive ? "auto" : "none"} className="select-none region-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'move', { x: region.baseCx, y: region.baseCy + defaultOffsetY }); }}}>
@@ -544,7 +546,7 @@ export default function App() {
           
           {drawLabel && (() => {
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0), scaledFontSize = labelFontSize * (override.scale || 1.0);
-             const isActive = activeDeco?.type === 'chiban_label' && activeDeco?.id === poly.id, isInteractive = mode === 'edit_deco';
+             const isActive = selectedDeco?.type === 'chiban_label' && selectedDeco?.id === poly.id, isInteractive = mode === 'edit_deco';
 
              return (
                <g pointerEvents={isInteractive ? "auto" : "none"} className="select-none chiban-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'move', poly.center); }}}>
@@ -699,7 +701,7 @@ export default function App() {
                   scale={viewBox.w} 
                   mode={mode} 
                   activeDeco={activeDeco} 
-                  selectedDecoId={selectedDecoId}
+                  selectedDeco={selectedDeco}
                   onDecoMouseDown={handleDecoMouseDown} 
                   dragDecoOverride={dragDecoOverride} 
                 />
@@ -737,7 +739,7 @@ export default function App() {
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification}
-              activeDeco={activeDeco} onDeleteActiveDeco={handleDeleteActiveDeco} />
+              activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
               {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}
