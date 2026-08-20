@@ -430,20 +430,20 @@ export default function App() {
   }, [mode]);
 
   const handleDeleteActiveDeco = useCallback(() => {
-    if (!activeDeco) return;
-    if (activeDeco.type === 'region_label') {
-      commitChange(currentPolygons, currentAppliedGroups, { ...currentRegionOverrides, [activeDeco.id]: { visible: false } });
-    } else if (activeDeco.type === 'chiban_label') {
-      commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [activeDeco.id]: { visible: false } });
-    } else if (activeDeco.type === 'deco') {
+    if (!selectedDeco) return;
+    if (selectedDeco.type === 'region_label') {
+      commitChange(currentPolygons, currentAppliedGroups, { ...currentRegionOverrides, [selectedDeco.id]: { visible: false } });
+    } else if (selectedDeco.type === 'chiban_label') {
+      commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [selectedDeco.id]: { visible: false } });
+    } else if (selectedDeco.type === 'deco') {
       const nextGroups = currentAppliedGroups.map(g => {
-        if (g.id !== activeDeco.groupId) return g;
-        return { ...g, decorations: g.decorations.filter(d => d.id !== activeDeco.decoId) };
+        if (g.id !== selectedDeco.groupId) return g;
+        return { ...g, decorations: g.decorations.filter(d => d.id !== selectedDeco.decoId) };
       });
       commitChange(currentPolygons, nextGroups);
     }
-    setActiveDeco(null);
-  }, [activeDeco, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
+    setSelectedDeco(null);
+  }, [selectedDeco, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
 
   useEffect(() => {
     if (error && error.includes("境界線が見つかりませんでした")) {
