@@ -1,7 +1,7 @@
 import React from 'react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDecoId, onDecoMouseDown, dragDecoOverride }) => {
+export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDecoMouseDown, dragDecoOverride }) => {
   const sw = scale / 1000; 
   const maxShapeSw = 0.2, maxHigeSw = 0.3;
   const lineSw = sw * 1.2, shapeSw = Math.min(sw * 1.2, maxShapeSw), higeSw = Math.min(sw * 1.5, maxHigeSw);
