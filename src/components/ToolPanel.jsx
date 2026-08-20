@@ -2,7 +2,7 @@ import React from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification }) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco }) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[280px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
@@ -12,6 +12,19 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     </div>
 
     <div className="flex flex-col gap-2 shrink-0">
+      {mode === 'edit_deco' && (
+        <div className="flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner mb-1">
+          <p className="text-[11px] font-bold text-neutral-600">装飾オブジェクトの調整</p>
+          <p className="text-[10px] text-neutral-500 mb-1 leading-tight">地図上の記号や文字をドラッグして位置・角度を調整できます。</p>
+          {activeDeco ? (
+            <button onClick={onDeleteActiveDeco} className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2 px-3 rounded transition-colors flex items-center justify-center gap-1 shadow-sm">
+              <Trash2 className="w-3 h-3" /> 選択中オブジェクトを削除
+            </button>
+          ) : (
+            <div className="text-[10px] text-neutral-400 text-center py-2 bg-white rounded border border-neutral-200">オブジェクトが選択されていません</div>
+          )}
+        </div>
+      )}
       
       <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
         <p className="text-[11px] font-bold text-neutral-600">地目の設定 (丸囲み)</p>

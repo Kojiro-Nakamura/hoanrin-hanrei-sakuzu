@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home } from 'lucide-react';
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
@@ -427,6 +427,22 @@ export default function App() {
     }
   }, [mode]);
 
+  const handleDeleteActiveDeco = useCallback(() => {
+    if (!activeDeco) return;
+    if (activeDeco.type === 'region_label') {
+      commitChange(currentPolygons, currentAppliedGroups, { ...currentRegionOverrides, [activeDeco.id]: { visible: false } });
+    } else if (activeDeco.type === 'chiban_label') {
+      commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [activeDeco.id]: { visible: false } });
+    } else if (activeDeco.type === 'deco') {
+      const nextGroups = currentAppliedGroups.map(g => {
+        if (g.id !== activeDeco.groupId) return g;
+        return { ...g, decorations: g.decorations.filter(d => d.id !== activeDeco.decoId) };
+      });
+      commitChange(currentPolygons, nextGroups);
+    }
+    setActiveDeco(null);
+  }, [activeDeco, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
+
   useEffect(() => {
     if (error && error.includes("境界線が見つかりませんでした")) {
       setError(null);
@@ -445,9 +461,7 @@ export default function App() {
       if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); handleRedo(); }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (mode === 'edit_deco' && activeDeco) {
-          if (activeDeco.type === 'region_label') commitChange(currentPolygons, currentAppliedGroups, { ...currentRegionOverrides, [activeDeco.id]: { visible: false } });
-          else if (activeDeco.type === 'chiban_label') commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [activeDeco.id]: { visible: false } });
-          setActiveDeco(null);
+          handleDeleteActiveDeco();
         } else if (selectedPolygons.length > 0) {
           handleRemoveFeatures();
         }
@@ -455,7 +469,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, finishDrawing, handleUndo, handleRedo, activeDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange]);
+  }, [mode, finishDrawing, handleUndo, handleRedo, activeDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
   const labelFontSize = (viewBox.w / 150) * screenMagnification * 0.72;
@@ -722,7 +736,8 @@ export default function App() {
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
-              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification} />
+              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification}
+              activeDeco={activeDeco} onDeleteActiveDeco={handleDeleteActiveDeco} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
               {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}

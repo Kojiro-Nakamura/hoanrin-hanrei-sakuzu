@@ -43,51 +43,26 @@ export const offsetRingByEdges = (ring, offset, isClosed, isCW, normalSign) => {
     };
   });
 
-  let lines = [...offsetLines];
-  let changed = true, maxIters = 50;
-  while (changed && lines.length > (isClosed ? 2 : 1) && maxIters > 0) {
-    changed = false; maxIters--;
-    for (let i = 0; i < lines.length; i++) {
-      if (!isClosed && (i === 0 || i === lines.length - 1)) continue;
-      const prevLine = lines[isClosed ? (i - 1 + lines.length) % lines.length : i - 1];
-      const nextLine = lines[isClosed ? (i + 1) % lines.length : i + 1];
-      
-      const interPrev = intersectLinesT(prevLine.p1, prevLine.v, lines[i].p1, lines[i].v);
-      const interNext = intersectLinesT(lines[i].p1, lines[i].v, nextLine.p1, nextLine.v);
-      
-      if (interPrev && interNext && interPrev.t2 > interNext.t1 + 1e-4) {
-        lines.splice(i, 1);
-        changed = true;
-        break;
-      }
-    }
-  }
-
   const offsetPoints = [];
-  if (!isClosed) offsetPoints.push(lines[0].p1);
+  if (!isClosed) offsetPoints.push(offsetLines[0].p1);
 
-  for (let i = 0; i < lines.length; i++) {
-    const line1 = lines[i], line2 = isClosed && i === lines.length - 1 ? lines[0] : lines[i+1];
+  for (let i = 0; i < offsetLines.length; i++) {
+    const line1 = offsetLines[i], line2 = isClosed && i === offsetLines.length - 1 ? offsetLines[0] : offsetLines[i+1];
     if (!line2 && !isClosed) { offsetPoints.push(line1.p2); break; }
 
     const inter = intersectLinesT(line1.p1, line1.v, line2.p1, line2.v);
     if (inter) {
-      const isAdjacent = Math.hypot(line1.orgEdge.p2.x - line2.orgEdge.p1.x, line1.orgEdge.p2.y - line2.orgEdge.p1.y) < 1e-4;
-      
-      if (isAdjacent) {
-        const distP = Math.hypot(inter.x - line1.orgEdge.p2.x, inter.y - line1.orgEdge.p2.y);
-        const dot = line1.v.x * line2.v.x + line1.v.y * line2.v.y;
-        
-        const cross = line1.v.x * line2.v.y - line1.v.y * line2.v.x;
-        const isExpanding = (cross * (isCW ? 1 : -1)) < 0;
+      const distP = Math.hypot(inter.x - line1.orgEdge.p2.x, inter.y - line1.orgEdge.p2.y);
+      const dot = line1.v.x * line2.v.x + line1.v.y * line2.v.y;
+      const isConvex = inter.t1 > line1.orgEdge.len + 1e-4;
 
-        if (isExpanding && (dot < -0.95 || distP > absOffset * 3.0)) { 
-          offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); 
-        } else {
-          offsetPoints.push(inter);
-        }
+      if (dot < -0.95) { offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); } 
+      else if (isConvex) {
+         if (distP > absOffset * 3.0) { offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); } 
+         else offsetPoints.push(inter);
       } else {
-        offsetPoints.push(inter);
+         if (distP > absOffset * 5.0) { offsetPoints.push(line1.p2); offsetPoints.push(line2.p1); } 
+         else offsetPoints.push(inter);
       }
     } else {
       offsetPoints.push(line1.p2);
