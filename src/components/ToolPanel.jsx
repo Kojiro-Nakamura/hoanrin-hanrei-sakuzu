@@ -2,7 +2,7 @@ import React from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco }) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels }) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[280px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
@@ -74,15 +74,18 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 mt-1" onWheel={(e) => { e.stopPropagation(); setScreenMagnification(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(1.0, Math.min(10.0, Math.round((p + (e.deltaY > 0 ? -0.5 : 0.5)) * 10) / 10)); }); }}>
-          <div className="flex justify-between items-center">
-            <label className="text-[11px] font-bold text-blue-600">画面上の表示倍率 (DXF影響なし)</label>
-            <span className="text-[11px] text-blue-600 font-bold">{Math.round((isNaN(screenMagnification) ? 1.0 : screenMagnification) * 100)}%</span>
+        <div className="flex flex-col gap-1.5 mt-2 border border-blue-200 bg-blue-50/50 p-2 rounded-lg" onWheel={(e) => { e.stopPropagation(); if(showLabels){ setScreenMagnification(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(1.0, Math.min(3.0, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}}>
+          <div className="flex justify-between items-center mb-0.5">
+            <label className="flex items-center gap-1.5 cursor-pointer" title="画面上で地番や文字ラベルを表示するか切り替えます（DXFには影響しません）">
+              <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} className="w-3.5 h-3.5 accent-blue-600" />
+              <span className="text-[11px] font-bold text-blue-700">画面上のラベルを表示</span>
+            </label>
+            <span className={`text-[11px] text-blue-700 font-bold transition-opacity ${!showLabels ? 'opacity-30' : ''}`}>{Math.round((isNaN(screenMagnification) ? 1.0 : screenMagnification) * 100)}%</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <button onClick={() => setScreenMagnification(p => Math.max(1.0, Math.round(((isNaN(p) ? 1.0 : p) - 0.5) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-blue-300 rounded text-blue-600 hover:bg-blue-50 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
-            <input type="range" min="1.0" max="10.0" step="0.5" value={isNaN(screenMagnification) ? 1.0 : screenMagnification} onChange={(e) => setScreenMagnification(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-blue-200 rounded-lg cursor-pointer accent-blue-600 outline-none" title="画面上での文字の見やすさを調整します" />
-            <button onClick={() => setScreenMagnification(p => Math.min(10.0, Math.round(((isNaN(p) ? 1.0 : p) + 0.5) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-blue-300 rounded text-blue-600 hover:bg-blue-50 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
+          <div className={`flex items-center gap-1.5 transition-opacity ${!showLabels ? 'opacity-30 pointer-events-none' : ''}`}>
+            <button onClick={() => setScreenMagnification(p => Math.max(1.0, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-blue-300 rounded text-blue-600 hover:bg-blue-50 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
+            <input type="range" min="1.0" max="3.0" step="0.1" value={isNaN(screenMagnification) ? 1.0 : screenMagnification} onChange={(e) => setScreenMagnification(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-blue-200 rounded-lg cursor-pointer accent-blue-600 outline-none" title="画面上での文字の見やすさを調整します" />
+            <button onClick={() => setScreenMagnification(p => Math.min(3.0, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-blue-300 rounded text-blue-600 hover:bg-blue-50 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
           </div>
         </div>
 
