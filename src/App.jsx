@@ -52,15 +52,30 @@ export default function App() {
       const { dataUrl, tfw, width, height } = result;
 
       const sysNum = data.coordinateSystem;
-      const projStr = `+proj=tmerc +lat_0=${CS_ORIGINS[sysNum].lat} +lon_0=${CS_ORIGINS[sysNum].lon} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
+      const targetProj = `+proj=tmerc +lat_0=${CS_ORIGINS[sysNum].lat} +lon_0=${CS_ORIGINS[sysNum].lon} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
 
-      const tl = { lon: tfw.C, lat: tfw.F };
-      const tr = { lon: tfw.A * width + tfw.C, lat: tfw.D * width + tfw.F };
-      const bl = { lon: tfw.B * height + tfw.C, lat: tfw.E * height + tfw.F };
+      // EPSG:3857 (Web Mercator) def
+      if (!window.proj4.defs('EPSG:3857')) {
+        window.proj4.defs('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs');
+      }
 
-      const p_tl = window.proj4('WGS84', projStr, [tl.lon, tl.lat]);
-      const p_tr = window.proj4('WGS84', projStr, [tr.lon, tr.lat]);
-      const p_bl = window.proj4('WGS84', projStr, [bl.lon, bl.lat]);
+      // Auto-detect source projection from TFW coordinates
+      let sourceProj = 'WGS84'; // Default to EPSG:4326 (degrees)
+      if (Math.abs(tfw.C) > 1000000 || Math.abs(tfw.F) > 1000000) {
+        // Likely EPSG:3857 (Web Mercator)
+        sourceProj = 'EPSG:3857';
+      } else if (Math.abs(tfw.C) > 180 || Math.abs(tfw.F) > 90) {
+        // Likely already in Plane Rectangular
+        sourceProj = targetProj; 
+      }
+
+      const tl = { x: tfw.C, y: tfw.F };
+      const tr = { x: tfw.A * width + tfw.C, y: tfw.D * width + tfw.F };
+      const bl = { x: tfw.B * height + tfw.C, y: tfw.E * height + tfw.F };
+
+      const p_tl = window.proj4(sourceProj, targetProj, [tl.x, tl.y]);
+      const p_tr = window.proj4(sourceProj, targetProj, [tr.x, tr.y]);
+      const p_bl = window.proj4(sourceProj, targetProj, [bl.x, bl.y]);
 
       const svg_tl = { x: p_tl[0], y: -p_tl[1] };
       const svg_tr = { x: p_tr[0], y: -p_tr[1] };
@@ -72,7 +87,6 @@ export default function App() {
       const d = (svg_bl.y - svg_tl.y) / height;
       const e = svg_tl.x;
       const f = svg_tl.y;
-
 
       const matrix = [a, b, c, d, e, f];
 
@@ -86,7 +100,6 @@ export default function App() {
       setBgImages(prev => {
         const newArr = [...prev, { dataUrl, matrix, width, height, bounds, name: result.name }];
         
-        // Compute new combined box
         let box = data?.boundingBox ? { ...data.boundingBox } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
         newArr.forEach(bg => {
           box.minX = Math.min(box.minX, bg.bounds.minX);
@@ -104,7 +117,6 @@ export default function App() {
         return newArr;
       });
       setLoading(false);
-
     } catch (err) {
       setLoading(false);
       setError("TIFF読込エラー: " + err.message);
