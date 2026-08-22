@@ -808,12 +808,12 @@ export default function App() {
               </defs>
               <rect x={viewBox.x - viewBox.w} y={viewBox.y - viewBox.h} width={viewBox.w * 3} height={viewBox.h * 3} fill="url(#grid)" pointerEvents="none" />
               
-              {bgImages.map((bg, idx) => (
-                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} style={{ filter: 'grayscale(100%)', opacity: 0.5 }} />
-              ))}
-
               {showMap && mapTiles.map(tile => (
                 <image key={tile.key} href={tile.url} x={tile.x} y={tile.y} width={tile.w} height={tile.h} preserveAspectRatio="none" className="opacity-80" crossOrigin="anonymous"/>
+              ))}
+
+              {bgImages.map((bg, idx) => (
+                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} style={{ filter: 'grayscale(100%)', opacity: 0.6, mixBlendMode: 'multiply' }} />
               ))}
 
               <path d={baseLinePath} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} strokeLinejoin="round" pointerEvents="none" opacity={showMap ? 0.7 : 0.8} />
