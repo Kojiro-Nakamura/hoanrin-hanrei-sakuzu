@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
-import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home } from 'lucide-react';
+import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image } from 'lucide-react';
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
 import { openDB, saveToDB, loadFromDB } from './utils/db';
@@ -39,6 +39,7 @@ export default function App() {
   const [selectedPolygons, setSelectedPolygons] = useState([]);
   const [hoveredPolygon, setHoveredPolygon] = useState(null);
   const [bgImages, setBgImages] = useState([]);
+  const [showBgImages, setShowBgImages] = useState(true);
 
   const handleLoadTiffZip = async (file) => {
     try {
@@ -812,7 +813,7 @@ export default function App() {
                 <image key={tile.key} href={tile.url} x={tile.x} y={tile.y} width={tile.w} height={tile.h} preserveAspectRatio="none" className="opacity-80" crossOrigin="anonymous"/>
               ))}
 
-              {bgImages.map((bg, idx) => (
+              {showBgImages && bgImages.map((bg, idx) => (
                 <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} style={{ filter: 'grayscale(100%)', opacity: 0.6, mixBlendMode: 'multiply' }} />
               ))}
 
@@ -846,6 +847,9 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <button onClick={() => fitToBoundingBox(combinedBoundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
                 <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
+                {bgImages.length > 0 && (
+                  <button onClick={() => setShowBgImages(!showBgImages)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showBgImages ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-neutral-700'}`} title="TIF背景表示"><Image className="w-5 h-5" /></button>
+                )}
                 {showMap && (
                   <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
                     <Layers className="w-4 h-4 text-neutral-500" />
