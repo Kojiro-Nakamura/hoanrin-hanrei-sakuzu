@@ -37,7 +37,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
             <button key={item.label} onClick={() => onApplyChimoku(item.value)} title={`「${item.value}」を設定`} className="h-6 px-1.5 flex items-center justify-center text-[10px] font-bold bg-white border border-neutral-300 rounded hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-300 transition-colors shadow-sm">{item.label}</button>
           ))}
           <div className="flex items-center gap-1 ml-auto">
-             <input type="text" maxLength={1} placeholder="他" className="w-6 h-6 text-[10px] text-center border border-neutral-300 rounded outline-none focus:border-indigo-500 shadow-sm"
+             <input type="text" maxLength={1} placeholder="他" className="w-10 h-6 text-xs text-center border border-neutral-300 rounded outline-none focus:border-indigo-500 shadow-sm"
                     onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value) { onApplyChimoku(e.target.value); e.target.value = ''; } }} />
              <button 
                 onClick={() => onApplyChimoku(null)} 
