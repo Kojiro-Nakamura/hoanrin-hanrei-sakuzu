@@ -73,10 +73,38 @@ export default function App() {
       const e = svg_tl.x;
       const f = svg_tl.y;
 
+
       const matrix = [a, b, c, d, e, f];
 
-      setBgImages(prev => [...prev, { dataUrl, matrix, name: result.name }]);
+      const svg_br = { x: svg_tr.x + svg_bl.x - svg_tl.x, y: svg_tr.y + svg_bl.y - svg_tl.y };
+      const minX = Math.min(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
+      const maxX = Math.max(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
+      const minY = Math.min(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
+      const maxY = Math.max(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
+      const bounds = { minX, minY, maxX, maxY };
+
+      setBgImages(prev => {
+        const newArr = [...prev, { dataUrl, matrix, width, height, bounds, name: result.name }];
+        
+        // Compute new combined box
+        let box = data?.boundingBox ? { ...data.boundingBox } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+        newArr.forEach(bg => {
+          box.minX = Math.min(box.minX, bg.bounds.minX);
+          box.minY = Math.min(box.minY, bg.bounds.minY);
+          box.maxX = Math.max(box.maxX, bg.bounds.maxX);
+          box.maxY = Math.max(box.maxY, bg.bounds.maxY);
+        });
+        
+        setTimeout(() => {
+          if (typeof fitToBoundingBox === 'function') {
+            fitToBoundingBox(box);
+          }
+        }, 100);
+        
+        return newArr;
+      });
       setLoading(false);
+
     } catch (err) {
       setLoading(false);
       setError("TIFF読込エラー: " + err.message);
@@ -97,6 +125,22 @@ export default function App() {
   const [selectedDeco, setSelectedDeco] = useState(null); 
 
   const { viewBox, svgRef, isDragging, handlers: panZoomHandlers, fitToBoundingBox, wasDragged } = usePanZoom(mode);
+
+  const combinedBoundingBox = useMemo(() => {
+    let box = data?.boundingBox;
+    if (bgImages.length > 0) {
+      box = box ? { ...box } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+      bgImages.forEach(bg => {
+        if (!bg.bounds) return;
+        box.minX = Math.min(box.minX, bg.bounds.minX);
+        box.minY = Math.min(box.minY, bg.bounds.minY);
+        box.maxX = Math.max(box.maxX, bg.bounds.maxX);
+        box.maxY = Math.max(box.maxY, bg.bounds.maxY);
+      });
+    }
+    return box;
+  }, [data?.boundingBox, bgImages]);
+
 
   const {
     history, historyIndex, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
@@ -768,7 +812,7 @@ export default function App() {
 
             <div className="absolute top-4 left-4 flex flex-col gap-2 pointer-events-auto z-10">
               <div className="flex items-center gap-2">
-                <button onClick={() => fitToBoundingBox(data.boundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
+                <button onClick={() => fitToBoundingBox(combinedBoundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
                 <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
                 {showMap && (
                   <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
