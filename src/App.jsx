@@ -38,6 +38,50 @@ export default function App() {
   const [mapType, setMapType] = useState('seamlessphoto');
   const [selectedPolygons, setSelectedPolygons] = useState([]);
   const [hoveredPolygon, setHoveredPolygon] = useState(null);
+
+  const handleLoadTiffZip = async (file) => {
+    try {
+      if (!data?.coordinateSystem || !window.proj4) {
+        setError("先にKML図面を読み込んで座標系を設定してください。");
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      const result = await parseTiffZip(file);
+      const { dataUrl, tfw, width, height } = result;
+
+      const sysNum = data.coordinateSystem;
+      const projStr = `+proj=tmerc +lat_0=${CS_ORIGINS[sysNum].lat} +lon_0=${CS_ORIGINS[sysNum].lon} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
+
+      const tl = { lon: tfw.C, lat: tfw.F };
+      const tr = { lon: tfw.A * width + tfw.C, lat: tfw.D * width + tfw.F };
+      const bl = { lon: tfw.B * height + tfw.C, lat: tfw.E * height + tfw.F };
+
+      const p_tl = window.proj4('WGS84', projStr, [tl.lon, tl.lat]);
+      const p_tr = window.proj4('WGS84', projStr, [tr.lon, tr.lat]);
+      const p_bl = window.proj4('WGS84', projStr, [bl.lon, bl.lat]);
+
+      const svg_tl = { x: p_tl[0], y: -p_tl[1] };
+      const svg_tr = { x: p_tr[0], y: -p_tr[1] };
+      const svg_bl = { x: p_bl[0], y: -p_bl[1] };
+
+      const a = (svg_tr.x - svg_tl.x) / width;
+      const b = (svg_tr.y - svg_tl.y) / width;
+      const c = (svg_bl.x - svg_tl.x) / height;
+      const d = (svg_bl.y - svg_tl.y) / height;
+      const e = svg_tl.x;
+      const f = svg_tl.y;
+
+      const matrix = [a, b, c, d, e, f];
+
+      setBgImages(prev => [...prev, { dataUrl, matrix, name: result.name }]);
+      setLoading(false);
+    } catch (err) {
+      setLoading(false);
+      setError("TIFF読込エラー: " + err.message);
+    }
+  };
+
   const [decorationScale, setDecorationScale] = useState(1.0);
   const [screenMagnification, setScreenMagnification] = useState(1.0);
   const [selectedLineStyle, setSelectedLineStyle] = useState('single');
