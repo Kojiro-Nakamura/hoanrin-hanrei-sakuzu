@@ -117,6 +117,18 @@ export async function parseTiffZip(file) {
   const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
   if (dataUrl === "data:,") throw new Error("画像変換に失敗しました。ファイルが大きすぎる可能性があります。");
 
+  console.log('TIFF Pixel Info:', {
+    originalWidth: width,
+    originalHeight: height,
+    scale,
+    canvasWidth,
+    canvasHeight,
+    isInterleaved,
+    numChannels,
+    maxVal,
+    sampleDataLength: sampleData.length
+  });
+
   return {
     name: tifFile.name,
     dataUrl,

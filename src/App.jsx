@@ -90,6 +90,15 @@ export default function App() {
 
       const matrix = [a, b, c, d, e, f];
 
+      console.log('TIFF Debug Info:', {
+        width, height,
+        sourceProj, targetProj,
+        p_tl, p_tr, p_bl,
+        matrix,
+        bounds,
+        dataUrlPreview: dataUrl.substring(0, 50)
+      });
+
       const svg_br = { x: svg_tr.x + svg_bl.x - svg_tl.x, y: svg_tr.y + svg_bl.y - svg_tl.y };
       const minX = Math.min(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
       const maxX = Math.max(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
