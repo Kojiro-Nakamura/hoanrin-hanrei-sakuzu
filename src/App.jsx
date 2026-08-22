@@ -38,6 +38,7 @@ export default function App() {
   const [mapType, setMapType] = useState('seamlessphoto');
   const [selectedPolygons, setSelectedPolygons] = useState([]);
   const [hoveredPolygon, setHoveredPolygon] = useState(null);
+  const [bgImages, setBgImages] = useState([]);
 
   const handleLoadTiffZip = async (file) => {
     try {
@@ -731,6 +732,10 @@ export default function App() {
               </defs>
               <rect x={viewBox.x - viewBox.w} y={viewBox.y - viewBox.h} width={viewBox.w * 3} height={viewBox.h * 3} fill="url(#grid)" pointerEvents="none" />
               
+              {bgImages.map((bg, idx) => (
+                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} opacity="0.8" />
+              ))}
+
               {showMap && mapTiles.map(tile => (
                 <image key={tile.key} href={tile.url} x={tile.x} y={tile.y} width={tile.w} height={tile.h} preserveAspectRatio="none" className="opacity-80" crossOrigin="anonymous"/>
               ))}
