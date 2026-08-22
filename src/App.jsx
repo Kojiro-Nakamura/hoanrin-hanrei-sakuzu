@@ -126,6 +126,20 @@ export default function App() {
 
   const { viewBox, svgRef, isDragging, handlers: panZoomHandlers, fitToBoundingBox, wasDragged } = usePanZoom(mode);
 
+
+
+  const {
+    history, historyIndex, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
+    commitChange, handleUndo, handleRedo, setHistory, setHistoryIndex
+  } = useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPts });
+
+  const {
+    data, loading, error, dbMessage, setDbMessage, hasSavedData, setError, loadFile, startFreehandDraw, confirmReset, handleLoadSavedData
+  } = useMapData({
+    currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, historyLength: history.length,
+    commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
+  });
+
   const combinedBoundingBox = useMemo(() => {
     let box = data?.boundingBox;
     if (bgImages.length > 0) {
@@ -140,19 +154,6 @@ export default function App() {
     }
     return box;
   }, [data?.boundingBox, bgImages]);
-
-
-  const {
-    history, historyIndex, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
-    commitChange, handleUndo, handleRedo, setHistory, setHistoryIndex
-  } = useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPts });
-
-  const {
-    data, loading, error, dbMessage, setDbMessage, hasSavedData, setError, loadFile, startFreehandDraw, confirmReset, handleLoadSavedData
-  } = useMapData({
-    currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, historyLength: history.length,
-    commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
-  });
 
   const mapTiles = useMapTiles(viewBox, showMap, data?.coordinateSystem || null, mapType, containerRef);
 
