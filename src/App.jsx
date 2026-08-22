@@ -90,6 +90,13 @@ export default function App() {
 
       const matrix = [a, b, c, d, e, f];
 
+      const svg_br = { x: svg_tr.x + svg_bl.x - svg_tl.x, y: svg_tr.y + svg_bl.y - svg_tl.y };
+      const minX = Math.min(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
+      const maxX = Math.max(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
+      const minY = Math.min(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
+      const maxY = Math.max(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
+      const bounds = { minX, minY, maxX, maxY };
+
       console.log('TIFF Debug Info:', {
         width, height,
         sourceProj, targetProj,
@@ -98,13 +105,6 @@ export default function App() {
         bounds,
         dataUrlPreview: dataUrl.substring(0, 50)
       });
-
-      const svg_br = { x: svg_tr.x + svg_bl.x - svg_tl.x, y: svg_tr.y + svg_bl.y - svg_tl.y };
-      const minX = Math.min(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
-      const maxX = Math.max(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
-      const minY = Math.min(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
-      const maxY = Math.max(svg_tl.y, svg_tr.y, svg_bl.y, svg_br.y);
-      const bounds = { minX, minY, maxX, maxY };
 
       setBgImages(prev => {
         const newArr = [...prev, { dataUrl, matrix, width, height, bounds, name: result.name }];
