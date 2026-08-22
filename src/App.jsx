@@ -108,11 +108,7 @@ export default function App() {
           box.maxY = Math.max(box.maxY, bg.bounds.maxY);
         });
         
-        setTimeout(() => {
-          if (typeof fitToBoundingBox === 'function') {
-            fitToBoundingBox(box);
-          }
-        }, 100);
+
         
         return newArr;
       });
@@ -176,6 +172,19 @@ export default function App() {
     selectedPolygons, setSelectedPolygons, selectedLineStyle, selectedDecoPattern, decorationScale, mode,
     commitChange, setError
   });
+
+  
+  const prevBgImagesLen = useRef(0);
+  useEffect(() => {
+    if (bgImages.length > prevBgImagesLen.current) {
+      setTimeout(() => {
+        if (combinedBoundingBox && typeof fitToBoundingBox === 'function') {
+          fitToBoundingBox(combinedBoundingBox);
+        }
+      }, 200);
+    }
+    prevBgImagesLen.current = bgImages.length;
+  }, [bgImages, combinedBoundingBox, fitToBoundingBox]);
 
   const { exportToDXF } = useExportDXF({
     currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides
