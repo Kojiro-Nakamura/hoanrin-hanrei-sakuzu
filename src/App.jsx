@@ -10,6 +10,7 @@ import { usePanZoom } from './hooks/usePanZoom';
 import { useMapTiles } from './hooks/useMapTiles';
 import { LegendGroup } from './components/LegendGroup';
 import { Header } from './components/Header';
+import { parseTiffZip } from './utils/tiffProcessor';
 import { ToolPanel } from './components/ToolPanel';
 import { useMapHistory } from './hooks/useMapHistory';
 import { useMapData } from './hooks/useMapData';
@@ -621,7 +622,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-full absolute inset-0 w-full bg-neutral-100 text-neutral-800 font-sans overflow-hidden">
-      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onExportJSON={exportToJSON} onLoadFile={loadFile} onUndo={handleUndo} onRedo={handleRedo} canUndo={historyIndex > 0} canRedo={historyIndex < history.length - 1} />
+      <Header fileInfo={data.fileInfo} coordinateSystem={data.coordinateSystem} onReset={() => setShowResetConfirm(true)} onExportDXF={exportToDXF} onExportJSON={exportToJSON} onLoadFile={loadFile} onLoadTiffZip={handleLoadTiffZip} onUndo={handleUndo} onRedo={handleRedo} canUndo={historyIndex > 0} canRedo={historyIndex < history.length - 1} />
 
       {showResetConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
