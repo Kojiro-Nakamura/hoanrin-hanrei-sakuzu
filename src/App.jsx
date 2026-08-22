@@ -809,7 +809,7 @@ export default function App() {
               <rect x={viewBox.x - viewBox.w} y={viewBox.y - viewBox.h} width={viewBox.w * 3} height={viewBox.h * 3} fill="url(#grid)" pointerEvents="none" />
               
               {bgImages.map((bg, idx) => (
-                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} opacity="0.8" />
+                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} style={{ filter: 'grayscale(100%)', opacity: 0.5 }} />
               ))}
 
               {showMap && mapTiles.map(tile => (
