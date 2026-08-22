@@ -52,7 +52,8 @@ export default function App() {
       const { dataUrl, tfw, width, height } = result;
 
       const sysNum = data.coordinateSystem;
-      const targetProj = `+proj=tmerc +lat_0=${CS_ORIGINS[sysNum].lat} +lon_0=${CS_ORIGINS[sysNum].lon} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
+      const origin = CS_ORIGINS[sysNum];
+      const targetProj = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
 
       // EPSG:3857 (Web Mercator) def
       if (!window.proj4.defs('EPSG:3857')) {
