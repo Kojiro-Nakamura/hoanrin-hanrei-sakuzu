@@ -151,7 +151,7 @@ export default function App() {
   } = useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPts });
 
   const {
-    data, loading, error, dbMessage, setDbMessage, hasSavedData, setError, loadFile, startFreehandDraw, confirmReset, handleLoadSavedData
+    data, loading, setLoading, error, dbMessage, setDbMessage, hasSavedData, setError, loadFile, startFreehandDraw, confirmReset, handleLoadSavedData
   } = useMapData({
     currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, historyLength: history.length,
     commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
