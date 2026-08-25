@@ -84,10 +84,10 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDe
   return (
     <g>
       {isHovered && (
-        <g pointerEvents="none" opacity="0.4">
-           <path d={pathData} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />
-           {innerPathData && <path d={innerPathData} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />}
-           {innerPathData2 && <path d={innerPathData2} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />}
+        <g pointerEvents="none" opacity="0.6">
+           <path d={pathData} fill="none" stroke="#facc15" strokeWidth={sw * 6} strokeLinecap="round" strokeLinejoin="round" />
+           {innerPathData && <path d={innerPathData} fill="none" stroke="#facc15" strokeWidth={sw * 6} strokeLinecap="round" strokeLinejoin="round" />}
+           {innerPathData2 && <path d={innerPathData2} fill="none" stroke="#facc15" strokeWidth={sw * 6} strokeLinecap="round" strokeLinejoin="round" />}
         </g>
       )}
       {renderBaseLine()}
@@ -131,7 +131,7 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDe
              onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'move'); } }}
              style={{ cursor: isInteractive ? 'move' : 'default', pointerEvents: isInteractive ? 'auto' : 'none' }}>
             {isInteractive && <path d={pathStr} fill="transparent" stroke="transparent" strokeWidth={sw * 20} />}
-            {isHovered && <path d={pathStr} fill="none" stroke="#facc15" strokeWidth={sw * 15} opacity="0.4" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
+            {isHovered && <path d={pathStr} fill="none" stroke="#facc15" strokeWidth={sw * 6} opacity="0.6" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
             <path d={pathStr} fill={d.type === 'solid_circle' ? "#3f3f46" : "none"} stroke={d.type==='hige'?"#dc2626":d.type==='solid_circle'?"#3f3f46":d.type==='triangle'?"#10b981":"#2563eb"} strokeWidth={d.type==='hige'?higeSw:shapeSw} strokeLinecap="round" strokeLinejoin="round" />
             {isActive && isInteractive && (
               <path d={pathStr} fill="none" stroke="#ca8a04" strokeWidth={sw * 3.5} opacity="0.4" pointerEvents="none" />
@@ -148,13 +148,13 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDe
       
       {!decorations && higePath && (
         <>
-          {isHovered && <path d={higePath} fill="none" stroke="#facc15" strokeWidth={sw * 15} opacity="0.4" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
+          {isHovered && <path d={higePath} fill="none" stroke="#facc15" strokeWidth={sw * 6} opacity="0.6" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
           <path d={higePath} fill="none" stroke="#dc2626" strokeWidth={higeSw} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
         </>
       )}
       {!decorations && shapePath && (
         <>
-          {isHovered && <path d={shapePath} fill="none" stroke="#facc15" strokeWidth={sw * 15} opacity="0.4" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
+          {isHovered && <path d={shapePath} fill="none" stroke="#facc15" strokeWidth={sw * 6} opacity="0.6" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}
           <path d={shapePath} fill="none" stroke="#2563eb" strokeWidth={shapeSw} strokeLinecap="round" strokeLinejoin="round" pointerEvents="none" />
         </>
       )}
