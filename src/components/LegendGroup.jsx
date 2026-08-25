@@ -129,6 +129,7 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDe
         return (
           <g key={d.id} className="deco-group" transform={`translate(${currentCx}, ${currentCy}) rotate(${currentAngle})`}
              onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); onDecoMouseDown(e, group.id, d, 'move'); } }}
+             onClick={(e) => { if (isInteractive) e.stopPropagation(); }}
              style={{ cursor: isInteractive ? 'move' : 'default', pointerEvents: isInteractive ? 'auto' : 'none' }}>
             {isInteractive && <path d={pathStr} fill="transparent" stroke="transparent" strokeWidth={sw * 20} />}
             {isHovered && <path d={pathStr} fill="none" stroke="#facc15" strokeWidth={sw * 6} opacity="0.6" pointerEvents="none" strokeLinecap="round" strokeLinejoin="round" />}

@@ -675,16 +675,16 @@ export default function App() {
       const scale = isDragging && dragDecoOverride.scale !== undefined ? dragDecoOverride.scale : (ft.scale || 1.0);
       
       const sw = viewBox.w / 1000;
-      const textHeight = 12 * scale * screenMagnification;
+      const fSize = (viewBox.w / 150) * scale * 0.72 * screenMagnification;
       
       if (ft.type === 'general') {
         const textLen = (ft.text1 || '').length;
-        const boxWidth = Math.max(40, textLen * 14) * scale * screenMagnification;
-        const boxHeight = 22 * scale * screenMagnification;
+        const boxWidth = Math.max(fSize * 2, textLen * fSize + fSize);
+        const boxHeight = fSize * 1.5;
         return (
-          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')}>
+          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')} onClick={(e) => e.stopPropagation()}>
             <rect x={-boxWidth/2} y={-boxHeight/2} width={boxWidth} height={boxHeight} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
-            <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{ft.text1}</text>
+            <text x={0} y={fSize * 0.35} fill="#3f3f46" fontSize={fSize} fontWeight="bold" textAnchor="middle" pointerEvents="none">{ft.text1}</text>
             {isSelected && mode === 'edit_deco' && (
               <circle cx={boxWidth/2} cy={-boxHeight/2} r={6*screenMagnification} fill="white" stroke="#10b981" strokeWidth={sw} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleFreeTextMouseDown(e, ft, 'scale'); }} />
             )}
@@ -695,19 +695,19 @@ export default function App() {
         const chimoku = ft.text1 || '';
         const chiban = ft.text2 || '';
         const chibanLen = chiban.length;
-        const circleR = 10 * scale * screenMagnification;
-        const rectW = Math.max(30, chibanLen * 10) * scale * screenMagnification;
+        const circleR = fSize * 0.8;
+        const rectW = Math.max(fSize * 2, chibanLen * fSize * 0.7);
         const totalW = circleR * 2 + rectW;
         
         return (
-          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')}>
+          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')} onClick={(e) => e.stopPropagation()}>
             <g transform={`translate(${-totalW/2 + circleR}, 0)`}>
               <circle cx={0} cy={0} r={circleR} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
-              <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chimoku}</text>
+              <text x={0} y={fSize * 0.35} fill="#3f3f46" fontSize={fSize} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chimoku}</text>
             </g>
             <g transform={`translate(${-totalW/2 + circleR*2 + rectW/2}, 0)`}>
               <rect x={-rectW/2} y={-circleR} width={rectW} height={circleR*2} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
-              <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chiban}</text>
+              <text x={0} y={fSize * 0.35} fill="#3f3f46" fontSize={fSize} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chiban}</text>
             </g>
             {isSelected && mode === 'edit_deco' && (
               <circle cx={totalW/2} cy={-circleR} r={6*screenMagnification} fill="white" stroke="#10b981" strokeWidth={sw} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleFreeTextMouseDown(e, ft, 'scale'); }} />
@@ -743,7 +743,7 @@ export default function App() {
       const isActive = selectedDeco?.type === 'region_label' && selectedDeco?.id === region.key, isInteractive = mode === 'edit_deco';
 
       return (
-        <g key={region.key} pointerEvents={isInteractive ? "auto" : "none"} className="select-none region-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'move', { x: region.baseCx, y: region.baseCy + defaultOffsetY }); }}}>
+        <g key={region.key} pointerEvents={isInteractive ? "auto" : "none"} className="select-none region-label-group" style={{ userSelect: 'none', cursor: isInteractive ? 'move' : 'default' }} onMouseDown={(e) => { if (isInteractive) { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'move', { x: region.baseCx, y: region.baseCy + defaultOffsetY }); }}} onClick={(e) => { if (isInteractive) e.stopPropagation(); }}>
           <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="#ffffff" stroke="#3f3f46" strokeWidth={fSize * 0.08} />
           <text x={finalCx} y={finalCy} fontSize={fSize} fill="#3f3f46" fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{text}</text>
           
