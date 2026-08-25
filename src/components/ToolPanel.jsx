@@ -136,7 +136,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       <div className="pt-3 border-t border-neutral-200 flex flex-col gap-2 shrink-0">
         <p className="text-xs font-bold text-neutral-500">適用済みの装飾 ({appliedGroups.length})</p>
         <div className="flex flex-col gap-2">
-          {appliedGroups.map(group => {
+          {[...appliedGroups].reverse().map(group => {
             let name = "";
             if (group.lineStyleId) {
                if (group.decoPatternId === 'megane') name = 'メガネ (境界結合)';
