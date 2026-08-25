@@ -438,7 +438,24 @@ export default function App() {
           });
         }
       }
-    } else if (mode === 'draw') {
+    } else 
+    if (mode === 'add_text') {
+      const pt = getSvgPoint(e);
+      if (pt) {
+        const newText = {
+          id: 'ft_' + Date.now(),
+          type: freeTextType,
+          text1: freeText1,
+          text2: freeText2,
+          cx: pt.x,
+          cy: pt.y,
+          scale: decorationScale
+        };
+        commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, [...(currentFreeTexts||[]), newText]);
+      }
+      return;
+    }
+    if (mode === 'draw') {
       if (Date.now() - lastDrawRef.current < 500) {
         setSnappedPt(null);
         return;
