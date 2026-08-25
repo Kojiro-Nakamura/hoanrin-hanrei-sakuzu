@@ -370,11 +370,12 @@ export default function App() {
 
   
   const handleFreeTextMouseDown = useCallback((e, text, dragMode) => {
+    e.stopPropagation();
     const pt = getSvgPoint(e);
     if (!pt) return;
     setActiveDeco({
       type: 'freetext', id: text.id, dragMode,
-      startCx: text.cx, startCy: text.cy,
+      startCx: text.cx, startCy: text.cy, startScale: text.scale || 1.0,
       startMouseX: pt.x, startMouseY: pt.y
     });
     setSelectedDeco({ type: 'freetext', id: text.id });
@@ -420,6 +421,10 @@ export default function App() {
             cx: activeDeco.startCx + (pt.x - activeDeco.startMouseX),
             cy: activeDeco.startCy + (pt.y - activeDeco.startMouseY)
           });
+        } else if (activeDeco.dragMode === 'scale') {
+          const dx = pt.x - activeDeco.startCx, dy = pt.y - activeDeco.startCy;
+          const scale = Math.max(0.2, (activeDeco.startScale || 1.0) + (dx - dy) / 200);
+          setDragDecoOverride({ type: 'freetext', id: activeDeco.id, scale });
         }
       } else if (activeDeco.type === 'deco') {
         if (activeDeco.dragMode === 'move') {
@@ -510,22 +515,36 @@ export default function App() {
         setDragChibanOverride(null);
       }
       if (dragDecoOverride) {
-        const nextGroups = currentAppliedGroups.map(g => {
-          if (g.id !== dragDecoOverride.groupId) return g;
-          return {
-            ...g,
-            decorations: g.decorations.map(d => {
-              if (d.id !== dragDecoOverride.decoId) return d;
-              return {
-                ...d,
-                cx: dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : d.cx,
-                cy: dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : d.cy,
-                angle: dragDecoOverride.angle !== undefined ? dragDecoOverride.angle : d.angle
-              };
-            })
-          };
-        });
-        commitChange(currentPolygons, nextGroups);
+        if (dragDecoOverride.type === 'freetext') {
+          const nextTexts = (currentFreeTexts || []).map(t => {
+            if (t.id !== dragDecoOverride.id) return t;
+            return {
+              ...t,
+              cx: dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : t.cx,
+              cy: dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : t.cy,
+              scale: dragDecoOverride.scale !== undefined ? dragDecoOverride.scale : t.scale
+            };
+          });
+          commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, nextTexts);
+        } else {
+          const nextGroups = currentAppliedGroups.map(g => {
+            if (g.id !== dragDecoOverride.groupId) return g;
+            return {
+              ...g,
+              decorations: g.decorations.map(d => {
+                if (d.id !== dragDecoOverride.decoId) return d;
+                return {
+                  ...d,
+                  cx: dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : d.cx,
+                  cy: dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : d.cy,
+                  angle: dragDecoOverride.angle !== undefined ? dragDecoOverride.angle : d.angle,
+                  scale: dragDecoOverride.scale !== undefined ? dragDecoOverride.scale : d.scale
+                };
+              })
+            };
+          });
+          commitChange(currentPolygons, nextGroups);
+        }
         setDragDecoOverride(null);
       }
       setActiveDeco(null);
@@ -653,7 +672,7 @@ export default function App() {
       const isDragging = dragDecoOverride?.type === 'freetext' && dragDecoOverride.id === ft.id;
       const cx = isDragging && dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : ft.cx;
       const cy = isDragging && dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : ft.cy;
-      const scale = isSelected ? decorationScale : (ft.scale || 1.0);
+      const scale = isDragging && dragDecoOverride.scale !== undefined ? dragDecoOverride.scale : (ft.scale || 1.0);
       
       const sw = viewBox.w / 1000;
       const textHeight = 12 * scale * screenMagnification;
@@ -664,8 +683,11 @@ export default function App() {
         const boxHeight = 22 * scale * screenMagnification;
         return (
           <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')}>
-            <rect x={-boxWidth/2} y={-boxHeight/2} width={boxWidth} height={boxHeight} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} rx={2*scale} ry={2*scale} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
+            <rect x={-boxWidth/2} y={-boxHeight/2} width={boxWidth} height={boxHeight} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
             <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{ft.text1}</text>
+            {isSelected && mode === 'edit_deco' && (
+              <circle cx={boxWidth/2} cy={-boxHeight/2} r={6*screenMagnification} fill="white" stroke="#10b981" strokeWidth={sw} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleFreeTextMouseDown(e, ft, 'scale'); }} />
+            )}
           </g>
         );
       } else if (ft.type === 'chiban') {
@@ -684,9 +706,12 @@ export default function App() {
               <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chimoku}</text>
             </g>
             <g transform={`translate(${-totalW/2 + circleR*2 + rectW/2}, 0)`}>
-              <rect x={-rectW/2} y={-circleR} width={rectW} height={circleR*2} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} rx={2*scale} ry={2*scale} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
+              <rect x={-rectW/2} y={-circleR} width={rectW} height={circleR*2} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
               <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chiban}</text>
             </g>
+            {isSelected && mode === 'edit_deco' && (
+              <circle cx={totalW/2} cy={-circleR} r={6*screenMagnification} fill="white" stroke="#10b981" strokeWidth={sw} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleFreeTextMouseDown(e, ft, 'scale'); }} />
+            )}
           </g>
         );
       }
