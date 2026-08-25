@@ -8,16 +8,19 @@ export function useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPt
   const currentAppliedGroups = history[historyIndex]?.appliedGroups || [];
   const currentRegionOverrides = history[historyIndex]?.regionOverrides || {};
   const currentChibanOverrides = history[historyIndex]?.chibanOverrides || {};
+  const currentFreeTexts = history[historyIndex]?.freeTexts || [];
 
-  const commitChange = useCallback((newPolygons, newAppliedGroups, newRegionOverrides = null, newChibanOverrides = null) => {
+  const commitChange = useCallback((newPolygons, newAppliedGroups, newRegionOverrides = null, newChibanOverrides = null, newFreeTexts = null) => {
     setHistoryIndex(prevIndex => {
       setHistory(prevHistory => {
         const nextHistory = prevHistory.slice(0, prevIndex + 1);
         const prevOverrides = nextHistory[nextHistory.length - 1]?.regionOverrides || {};
         const prevChibanOverrides = nextHistory[nextHistory.length - 1]?.chibanOverrides || {};
+        const prevFreeTexts = nextHistory[nextHistory.length - 1]?.freeTexts || [];
         nextHistory.push({ 
           polygons: newPolygons, appliedGroups: newAppliedGroups,
-          regionOverrides: newRegionOverrides || prevOverrides, chibanOverrides: newChibanOverrides || prevChibanOverrides
+          regionOverrides: newRegionOverrides || prevOverrides, chibanOverrides: newChibanOverrides || prevChibanOverrides,
+          freeTexts: newFreeTexts || prevFreeTexts
         });
         return nextHistory;
       });

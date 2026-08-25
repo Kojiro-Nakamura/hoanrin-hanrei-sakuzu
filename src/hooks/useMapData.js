@@ -7,6 +7,7 @@ export function useMapData({
   currentAppliedGroups,
   currentRegionOverrides,
   currentChibanOverrides,
+  currentFreeTexts,
   historyLength,
   commitChange,
   fitToBoundingBox,
@@ -58,14 +59,15 @@ export function useMapData({
                    }
                    return { ...prev, lines: newLines, boundingBox: newBBox };
                });
-               commitChange([...currentPolygons, ...(parsed.polygons || [])], [...currentAppliedGroups, ...(parsed.appliedGroups || [])], { ...currentRegionOverrides, ...(parsed.regionOverrides || {}) }, { ...currentChibanOverrides, ...(parsed.chibanOverrides || {}) });
+               commitChange([...currentPolygons, ...(parsed.polygons || [])], [...currentAppliedGroups, ...(parsed.appliedGroups || [])], { ...currentRegionOverrides, ...(parsed.regionOverrides || {}) }, { ...currentChibanOverrides, ...(parsed.chibanOverrides || {}) }, [...(currentFreeTexts || []), ...(parsed.freeTexts || [])]);
            } else {
                setData({ lines: parsed.lines || [], boundingBox: parsed.boundingBox || null, coordinateSystem: parsed.coordinateSystem || null, fileInfo: parsed.fileInfo || { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' } });
                setHistory([{ 
                   polygons: parsed.polygons || [], 
                   appliedGroups: parsed.appliedGroups || [],
                   regionOverrides: parsed.regionOverrides || {},
-                  chibanOverrides: parsed.chibanOverrides || {}
+                  chibanOverrides: parsed.chibanOverrides || {},
+                  freeTexts: parsed.freeTexts || []
                }]);
                setHistoryIndex(0);
                if (parsed.boundingBox) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
@@ -136,8 +138,11 @@ export function useMapData({
   useEffect(() => {
     if (data.boundingBox && historyLength > 0) {
       saveToDB({
-        lines: data.lines, polygons: currentPolygons, appliedGroups: currentAppliedGroups,
-        regionOverrides: currentRegionOverrides, chibanOverrides: currentChibanOverrides,
+        lines: data.lines, polygons: currentPolygons,
+      appliedGroups: currentAppliedGroups,
+      regionOverrides: currentRegionOverrides,
+      chibanOverrides: currentChibanOverrides,
+      freeTexts: currentFreeTexts,
         boundingBox: data.boundingBox, coordinateSystem: data.coordinateSystem, fileInfo: data.fileInfo
       }).catch(e => console.error("Auto-save failed", e));
     }

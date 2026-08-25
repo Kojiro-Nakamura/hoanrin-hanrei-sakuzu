@@ -131,6 +131,9 @@ export default function App() {
   };
 
   const [decorationScale, setDecorationScale] = useState(1.0);
+  const [freeTextType, setFreeTextType] = useState('general');
+  const [freeText1, setFreeText1] = useState('');
+  const [freeText2, setFreeText2] = useState('');
   const [screenMagnification, setScreenMagnification] = useState(1.0);
   const [selectedLineStyle, setSelectedLineStyle] = useState('single');
   const [selectedDecoPattern, setSelectedDecoPattern] = useState('none');
@@ -149,7 +152,7 @@ export default function App() {
 
 
   const {
-    history, historyIndex, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
+    history, historyIndex, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts,
     commitChange, handleUndo, handleRedo, setHistory, setHistoryIndex
   } = useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPts });
 
@@ -199,7 +202,7 @@ export default function App() {
   }, [bgImages, combinedBoundingBox, fitToBoundingBox]);
 
   const { exportToDXF } = useExportDXF({
-    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides
+    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides, currentFreeTexts
   });
 
   const exportToJSON = useCallback(() => {
@@ -365,6 +368,19 @@ export default function App() {
     setSelectedDeco({ type: "deco", groupId, decoId: deco.id });
   }, [getSvgPoint]);
 
+  
+  const handleFreeTextMouseDown = useCallback((e, text, dragMode) => {
+    const pt = getSvgPoint(e);
+    if (!pt) return;
+    setActiveDeco({
+      type: 'freetext', id: text.id, dragMode,
+      startCx: text.cx, startCy: text.cy,
+      startMouseX: pt.x, startMouseY: pt.y
+    });
+    setSelectedDeco({ type: 'freetext', id: text.id });
+    if (text.scale) setDecorationScale(text.scale);
+  }, [getSvgPoint]);
+
   const handleRegionLabelMouseDown = useCallback((e, regionKey, dragMode, center) => {
     setActiveDeco({ type: 'region_label', id: regionKey, dragMode, startCx: center.x, startCy: center.y });
     setSelectedDeco({ type: 'region_label', id: regionKey });
@@ -396,6 +412,14 @@ export default function App() {
         } else if (activeDeco.dragMode === 'scale') {
           const scale = Math.max(0.2, 1.0 + (dx + dy) / 200);
           setDragChibanOverride({ polyId: activeDeco.id, scale });
+        }
+      } else if (activeDeco.type === 'freetext') {
+        if (activeDeco.dragMode === 'move') {
+          setDragDecoOverride({
+            type: 'freetext', id: activeDeco.id,
+            cx: activeDeco.startCx + (pt.x - activeDeco.startMouseX),
+            cy: activeDeco.startCy + (pt.y - activeDeco.startMouseY)
+          });
         }
       } else if (activeDeco.type === 'deco') {
         if (activeDeco.dragMode === 'move') {
@@ -559,6 +583,9 @@ export default function App() {
       commitChange(currentPolygons, currentAppliedGroups, { ...currentRegionOverrides, [selectedDeco.id]: { visible: false } });
     } else if (selectedDeco.type === 'chiban_label') {
       commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, { ...currentChibanOverrides, [selectedDeco.id]: { visible: false } });
+    } else if (selectedDeco.type === 'freetext') {
+      const nextTexts = currentFreeTexts.filter(t => t.id !== selectedDeco.id);
+      commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, nextTexts);
     } else if (selectedDeco.type === 'deco') {
       const nextGroups = currentAppliedGroups.map(g => {
         if (g.id !== selectedDeco.groupId) return g;
@@ -601,6 +628,55 @@ export default function App() {
   const labelFontSize = (viewBox.w / 150) * (screenMagnification * 1.6) * 0.72;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
+
+  
+  const renderFreeTexts = () => {
+    if (!currentFreeTexts) return null;
+    return currentFreeTexts.map(ft => {
+      const isSelected = selectedDeco?.type === 'freetext' && selectedDeco.id === ft.id;
+      const isDragging = dragDecoOverride?.type === 'freetext' && dragDecoOverride.id === ft.id;
+      const cx = isDragging && dragDecoOverride.cx !== undefined ? dragDecoOverride.cx : ft.cx;
+      const cy = isDragging && dragDecoOverride.cy !== undefined ? dragDecoOverride.cy : ft.cy;
+      const scale = isSelected ? decorationScale : (ft.scale || 1.0);
+      
+      const sw = viewBox.w / 1000;
+      const textHeight = 12 * scale * screenMagnification;
+      
+      if (ft.type === 'general') {
+        const textLen = (ft.text1 || '').length;
+        const boxWidth = Math.max(40, textLen * 14) * scale * screenMagnification;
+        const boxHeight = 22 * scale * screenMagnification;
+        return (
+          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')}>
+            <rect x={-boxWidth/2} y={-boxHeight/2} width={boxWidth} height={boxHeight} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} rx={2*scale} ry={2*scale} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
+            <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{ft.text1}</text>
+          </g>
+        );
+      } else if (ft.type === 'chiban') {
+        // Chiban/Chimoku format
+        const chimoku = ft.text1 || '';
+        const chiban = ft.text2 || '';
+        const chibanLen = chiban.length;
+        const circleR = 10 * scale * screenMagnification;
+        const rectW = Math.max(30, chibanLen * 10) * scale * screenMagnification;
+        const totalW = circleR * 2 + rectW;
+        
+        return (
+          <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')}>
+            <g transform={`translate(${-totalW/2 + circleR}, 0)`}>
+              <circle cx={0} cy={0} r={circleR} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
+              <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chimoku}</text>
+            </g>
+            <g transform={`translate(${-totalW/2 + circleR*2 + rectW/2}, 0)`}>
+              <rect x={-rectW/2} y={-circleR} width={rectW} height={circleR*2} fill="#ffffff" stroke={isSelected ? "#10b981" : "#3f3f46"} strokeWidth={sw} rx={2*scale} ry={2*scale} strokeDasharray={isSelected ? `${sw*2} ${sw*2}` : "none"} />
+              <text x={0} y={4 * scale * screenMagnification} fill="#3f3f46" fontSize={textHeight} fontWeight="bold" textAnchor="middle" pointerEvents="none">{chiban}</text>
+            </g>
+          </g>
+        );
+      }
+      return null;
+    });
+  };
 
   const renderRegionLabels = () => {
     if (!showLabels) return null;
@@ -821,6 +897,7 @@ export default function App() {
               <path d={baseLinePath} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} strokeLinejoin="round" pointerEvents="none" opacity={showMap ? 0.7 : 0.8} />
 
               {renderRegionLabels()}
+              {renderFreeTexts()}
               {renderPolygons()}
               {currentAppliedGroups.map((group, i) => (
                 <LegendGroup 

@@ -1,14 +1,15 @@
 import React from 'react';
-import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } from 'lucide-react';
+import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels , onHoverGroup}) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[280px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
       <button onClick={() => setMode('select')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='select'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><MousePointerClick className="w-3 h-3"/> 選択</button>
       <button onClick={() => setMode('draw')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='draw'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><Scissors className="w-3 h-3"/> 作図</button>
       <button onClick={() => setMode('edit_deco')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='edit_deco'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><RefreshCw className="w-3 h-3"/> 装飾調整</button>
+      <button onClick={() => setMode('add_text')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='add_text'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><Type className="w-3 h-3"/> 文字追加</button>
     </div>
 
     <div className="flex flex-col gap-2 shrink-0">
@@ -18,7 +19,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           <p className="text-[10px] text-neutral-500 mb-1 leading-tight">地図上の記号や文字をドラッグして位置・角度を調整できます。</p>
           {activeDeco ? (
             <button onClick={onDeleteActiveDeco} className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2 px-3 rounded transition-colors flex items-center justify-center gap-1 shadow-sm">
-              <Trash2 className="w-3 h-3" /> 選択中オブジェクトを削除
+              <Trash2, Type className="w-3 h-3" /> 選択中オブジェクトを削除
             </button>
           ) : (
             <div className="text-[10px] text-neutral-400 text-center py-2 bg-white rounded border border-neutral-200">オブジェクトが選択されていません</div>
@@ -26,6 +27,33 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         </div>
       )}
       
+      
+      {mode === 'add_text' && (
+        <div className="flex flex-col gap-2 bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 shadow-inner mb-1">
+          <p className="text-[11px] font-bold text-indigo-800">フリーテキスト追加</p>
+          <div className="flex gap-2 text-[10px] sm:text-xs">
+            <label className="flex items-center gap-1 cursor-pointer">
+              <input type="radio" checked={freeTextType === 'general'} onChange={() => setFreeTextType('general')} className="w-3 h-3" />
+              <span>字・一般</span>
+            </label>
+            <label className="flex items-center gap-1 cursor-pointer">
+              <input type="radio" checked={freeTextType === 'chiban'} onChange={() => setFreeTextType('chiban')} className="w-3 h-3" />
+              <span>地目＋地番</span>
+            </label>
+          </div>
+          
+          {freeTextType === 'general' ? (
+            <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="例: 字〇〇、〇〇町" className="w-full text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" />
+          ) : (
+            <div className="flex gap-1">
+              <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="地目(保)" className="w-1/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" maxLength={1} />
+              <input type="text" value={freeText2} onChange={e => setFreeText2(e.target.value)} placeholder="地番(123-4)" className="w-2/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" />
+            </div>
+          )}
+          <p className="text-[10px] text-indigo-600 leading-tight">👆 内容を入力し、マップ上の配置したい場所をクリックしてください。</p>
+        </div>
+      )}
+
       <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
         <p className="text-[11px] font-bold text-neutral-600">地目の設定 (丸囲み)</p>
         <div className="flex flex-wrap gap-1">
@@ -123,7 +151,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                   <span className="font-medium text-neutral-700">{p.chiban}</span>
                 )}
                 {(p.isCustom || p.parentPoly) && (
-                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors shrink-0 ml-1" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors shrink-0 ml-1" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2, Type className="w-3.5 h-3.5" /></button>
                 )}
               </div>
             ))}
@@ -154,7 +182,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                     <span className="font-bold text-neutral-700 truncate">{name}</span>
                  </div>
                  <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
-                 <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                 <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2, Type className="w-4 h-4" /></button>
               </div>
             )
           })}
