@@ -105,7 +105,7 @@ export function useMapData({
                 coordinateSystem: parsed.coordinateSystem,
                 fileInfo: { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' }
             });
-            setHistory([{ polygons: parsed.polygons, appliedGroups: [], regionOverrides: {}, chibanOverrides: {} }]);
+            setHistory([{ polygons: parsed.polygons, appliedGroups: [], regionOverrides: {}, chibanOverrides: {}, freeTexts: [] }]);
             setHistoryIndex(0);
             if (parsed.boundingBox) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
          }
@@ -121,7 +121,7 @@ export function useMapData({
       lines: [], boundingBox: { minX: 0, minY: 0, maxX: 1000, maxY: 1000 },
       coordinateSystem: sysNum, fileInfo: { name: `フリーハンド作図 (第${sysNum}系)`, size: '-' }
     });
-    setHistory([{ polygons: [], appliedGroups: [], regionOverrides: {}, chibanOverrides: {} }]);
+    setHistory([{ polygons: [], appliedGroups: [], regionOverrides: {}, chibanOverrides: {}, freeTexts: [] }]);
     setHistoryIndex(0); 
     setMode('draw'); 
     setShowMap(true);
@@ -146,7 +146,7 @@ export function useMapData({
         boundingBox: data.boundingBox, coordinateSystem: data.coordinateSystem, fileInfo: data.fileInfo
       }).catch(e => console.error("Auto-save failed", e));
     }
-  }, [data, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, historyLength]);
+  }, [data, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, historyLength]);
 
   useEffect(() => {
     loadFromDB().then(dbData => {
@@ -163,7 +163,8 @@ export function useMapData({
         setData({ lines: dbData.lines || [], boundingBox: dbData.boundingBox || null, coordinateSystem: dbData.coordinateSystem || null, fileInfo: dbData.fileInfo || null });
         setHistory([{ 
           polygons: dbData.polygons || [], appliedGroups: dbData.appliedGroups || [],
-          regionOverrides: dbData.regionOverrides || {}, chibanOverrides: dbData.chibanOverrides || {}
+          regionOverrides: dbData.regionOverrides || {}, chibanOverrides: dbData.chibanOverrides || {},
+          freeTexts: dbData.freeTexts || []
         }]);
         setHistoryIndex(0);
         setTimeout(() => fitToBoundingBox(dbData.boundingBox), 50);
