@@ -2,7 +2,7 @@ import React from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2 } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels }) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels , onHoverGroup}) => (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[280px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
@@ -148,7 +148,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
             } else name = '旧スタイル設定'; 
             
             return (
-              <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group">
+              <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverGroup && onHoverGroup(group.id)} onMouseLeave={() => onHoverGroup && onHoverGroup(null)}>
                  <div className="flex items-center gap-2 mb-1 pr-6">
                     <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
                     <span className="font-bold text-neutral-700 truncate">{name}</span>

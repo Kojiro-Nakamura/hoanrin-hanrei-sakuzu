@@ -1,7 +1,7 @@
 import React from 'react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDecoMouseDown, dragDecoOverride }) => {
+export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDecoMouseDown, dragDecoOverride, isHovered }) => {
   const sw = scale / 1000; 
   const maxShapeSw = 0.2, maxHigeSw = 0.3;
   const lineSw = sw * 1.2, shapeSw = Math.min(sw * 1.2, maxShapeSw), higeSw = Math.min(sw * 1.5, maxHigeSw);
@@ -83,6 +83,13 @@ export const LegendGroup = ({ group, scale, mode, activeDeco, selectedDeco, onDe
 
   return (
     <g>
+      {isHovered && (
+        <g pointerEvents="none" opacity="0.4">
+           <path d={pathData} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />
+           {innerPathData && <path d={innerPathData} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />}
+           {innerPathData2 && <path d={innerPathData2} fill="none" stroke="#facc15" strokeWidth={sw * 15} strokeLinecap="round" strokeLinejoin="round" />}
+        </g>
+      )}
       {renderBaseLine()}
       
       {decorations && decorations.map(d => {

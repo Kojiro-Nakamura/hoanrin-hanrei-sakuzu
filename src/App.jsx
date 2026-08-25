@@ -139,6 +139,7 @@ export default function App() {
   const [dragRegionOverride, setDragRegionOverride] = useState(null);
   const [dragChibanOverride, setDragChibanOverride] = useState(null);
   const [dragDecoOverride, setDragDecoOverride] = useState(null);
+  const [hoveredGroupId, setHoveredGroupId] = useState(null);
 
   const [activeDeco, setActiveDeco] = useState(null); 
   const [selectedDeco, setSelectedDeco] = useState(null); 
@@ -868,7 +869,8 @@ export default function App() {
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification}
-              activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} showLabels={showLabels} setShowLabels={setShowLabels} />
+              activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} showLabels={showLabels} setShowLabels={setShowLabels}
+              onHoverGroup={setHoveredGroupId} />
 
             <div className="absolute bottom-6 right-6 flex flex-col items-end gap-1 pointer-events-none z-10">
               {showMap && <div className="bg-white/80 backdrop-blur px-2 py-1 rounded shadow-sm text-[10px] text-neutral-600 pointer-events-auto"><a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noreferrer" className="hover:underline">出典：国土地理院</a></div>}
