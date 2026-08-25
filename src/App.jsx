@@ -831,7 +831,8 @@ export default function App() {
                   activeDeco={activeDeco} 
                   selectedDeco={selectedDeco}
                   onDecoMouseDown={handleDecoMouseDown} 
-                  dragDecoOverride={dragDecoOverride} 
+                  dragDecoOverride={dragDecoOverride}
+                  isHovered={hoveredGroupId === group.id}
                 />
               ))}
               {renderDrawingLayer()}
