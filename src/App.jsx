@@ -530,7 +530,7 @@ export default function App() {
       }
       setActiveDeco(null);
     }
-  }, [activeDeco, dragRegionOverride, dragChibanOverride, dragDecoOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
+  }, [activeDeco, dragRegionOverride, dragChibanOverride, dragDecoOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, commitChange]);
 
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
@@ -610,7 +610,7 @@ export default function App() {
       commitChange(currentPolygons, nextGroups);
     }
     setSelectedDeco(null);
-  }, [selectedDeco, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange]);
+  }, [selectedDeco, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, commitChange]);
 
   useEffect(() => {
     if (error && error.includes("境界線が見つかりませんでした")) {
