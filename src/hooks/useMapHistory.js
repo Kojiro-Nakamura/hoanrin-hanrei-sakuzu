@@ -75,6 +75,7 @@ export function useMapHistory({ mode, setMode, setSelectedPolygons, setDrawingPt
     currentAppliedGroups,
     currentRegionOverrides,
     currentChibanOverrides,
+    currentFreeTexts,
     commitChange,
     handleUndo,
     handleRedo
