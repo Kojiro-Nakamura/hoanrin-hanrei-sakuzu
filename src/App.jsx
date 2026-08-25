@@ -535,6 +535,22 @@ export default function App() {
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
     setSelectedDeco(null);
+    if (mode === 'add_text') {
+      const pt = getSvgPoint(e);
+      if (pt) {
+        const newText = {
+          id: 'ft_' + Date.now(),
+          type: freeTextType,
+          text1: freeText1,
+          text2: freeText2,
+          cx: pt.x,
+          cy: pt.y,
+          scale: decorationScale
+        };
+        commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, [...(currentFreeTexts||[]), newText]);
+      }
+      return;
+    }
     if (mode === 'draw') {
       const pt = getSvgPoint(e); if (!pt) return;
       if (drawingPts.length >= 3 && snappedPt && snappedPt.type === 'start') {
