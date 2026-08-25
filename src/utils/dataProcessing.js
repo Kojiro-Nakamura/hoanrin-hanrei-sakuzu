@@ -130,7 +130,7 @@ export const generateOffsetRings = (pathStr, offset, ringsOverride = null) => {
       co.AddPath(path, ClipperLib.JoinType.jtMiter, ClipperLib.EndType.etClosedPolygon);
       
       const offsetPaths = new ClipperLib.Paths();
-      const actualOffset = isHole ? -offset : offset;
+      const actualOffset = isHole ? offset : -offset;
       co.Execute(offsetPaths, actualOffset * scale);
       
       offsetPaths.forEach(p => {
