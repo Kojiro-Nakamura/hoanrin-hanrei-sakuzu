@@ -2,7 +2,13 @@ import React from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => (
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, screenMagnification, setScreenMagnification, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
+  const combinedItems = [
+    ...appliedGroups.map(g => ({ ...g, itemType: 'group' })),
+    ...freeTexts.map(f => ({ ...f, itemType: 'freetext' }))
+  ].sort((a, b) => (parseInt(b.id.split('_')[1]) || 0) - (parseInt(a.id.split('_')[1]) || 0));
+
+  return (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[320px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
     
     <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
@@ -160,48 +166,52 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       </div>
     )}
 
-    {(appliedGroups.length > 0 || freeTexts.length > 0) && (
+    {combinedItems.length > 0 && (
       <div className="pt-3 border-t border-neutral-200 flex flex-col gap-2 shrink-0">
-        <p className="text-xs font-bold text-neutral-500">適用済みの装飾 ({appliedGroups.length + freeTexts.length})</p>
+        <p className="text-xs font-bold text-neutral-500">適用済みの装飾 ({combinedItems.length})</p>
         <div className="flex flex-col gap-2">
-          {[...appliedGroups].reverse().map(group => {
-            let name = "";
-            if (group.lineStyleId) {
-               if (group.decoPatternId === 'megane') name = 'メガネ (境界結合)';
-               else {
-                  const lName = LINE_STYLES.find(l => l.id === group.lineStyleId)?.name || '';
-                  const dName = DECO_PATTERNS.find(d => d.id === group.decoPatternId)?.name || 'なし';
-                  name = lName + ' + ' + dName;
-               }
-            } else name = '旧スタイル設定'; 
-            
-            return (
-              <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverGroup && onHoverGroup(group.id)} onMouseLeave={() => onHoverGroup && onHoverGroup(null)}>
-                 <div className="flex items-center gap-2 mb-1 pr-6">
-                    <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
-                    <span className="font-bold text-neutral-700 truncate">{name}</span>
-                 </div>
-                 <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
-                 <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            )
-          })}
-          {[...freeTexts].reverse().map(ft => {
-            const name = ft.type === 'chiban' ? '地目＋地番' : 'フリーテキスト';
-            const content = ft.type === 'chiban' ? `${ft.text1 || ''} ${ft.text2 || ''}` : ft.text1 || '';
-            return (
-              <div key={ft.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
-                 <div className="flex items-center gap-2 mb-1 pr-6">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
-                    <span className="font-bold text-neutral-700 truncate">{name}</span>
-                 </div>
-                 <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
-                 <button onClick={() => onRemoveFreeText && onRemoveFreeText(ft.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            )
+          {combinedItems.map(item => {
+            if (item.itemType === 'group') {
+              const group = item;
+              let name = "";
+              if (group.lineStyleId) {
+                 if (group.decoPatternId === 'megane') name = 'メガネ (境界結合)';
+                 else {
+                    const lName = LINE_STYLES.find(l => l.id === group.lineStyleId)?.name || '';
+                    const dName = DECO_PATTERNS.find(d => d.id === group.decoPatternId)?.name || 'なし';
+                    name = lName + ' + ' + dName;
+                 }
+              } else name = '旧スタイル設定'; 
+              
+              return (
+                <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverGroup && onHoverGroup(group.id)} onMouseLeave={() => onHoverGroup && onHoverGroup(null)}>
+                   <div className="flex items-center gap-2 mb-1 pr-6">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
+                      <span className="font-bold text-neutral-700 truncate">{name}</span>
+                   </div>
+                   <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
+                   <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              )
+            } else {
+              const ft = item;
+              const name = ft.type === 'chiban' ? '地目＋地番' : 'フリーテキスト';
+              const content = ft.type === 'chiban' ? `${ft.text1 || ''} ${ft.text2 || ''}` : ft.text1 || '';
+              return (
+                <div key={ft.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
+                   <div className="flex items-center gap-2 mb-1 pr-6">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+                      <span className="font-bold text-neutral-700 truncate">{name}</span>
+                   </div>
+                   <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
+                   <button onClick={() => onRemoveFreeText && onRemoveFreeText(ft.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              )
+            }
           })}
         </div>
       </div>
     )}
   </div>
-);
+  );
+};
