@@ -108,7 +108,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 mt-2 border border-blue-200 bg-blue-50/50 p-2 rounded-lg" onWheel={(e) => { e.stopPropagation(); if(showLabels){ setScreenMagnification(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.5, Math.min(1.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}}>
+        <div className="flex flex-col gap-1.5 mt-2 border-y border-blue-200 bg-blue-50/50 py-2 -mx-2 px-2" onWheel={(e) => { e.stopPropagation(); if(showLabels){ setScreenMagnification(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.5, Math.min(1.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}}>
           <div className="flex justify-between items-center mb-0.5">
             <label className="flex items-center gap-1.5 cursor-pointer" title="画面上で地番や文字ラベルを表示するか切り替えます（DXFには影響しません）">
               <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} className="w-3.5 h-3.5 accent-blue-600" />
