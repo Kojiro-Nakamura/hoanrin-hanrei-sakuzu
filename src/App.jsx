@@ -618,6 +618,14 @@ export default function App() {
       setSelectedDeco(null);
     }
   }, [mode]);
+  
+  const handleRemoveFreeText = useCallback((id) => {
+    const nextTexts = currentFreeTexts.filter(t => t.id !== id);
+    commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, nextTexts);
+    if (selectedDeco?.type === 'freetext' && selectedDeco?.id === id) {
+      setSelectedDeco(null);
+    }
+  }, [currentFreeTexts, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, commitChange, selectedDeco]);
 
   const handleDeleteActiveDeco = useCallback(() => {
     if (!selectedDeco) return;
@@ -997,8 +1005,9 @@ export default function App() {
 
             <ToolPanel 
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
+              freeTexts={currentFreeTexts}
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
-              onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
+              onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onRemoveFreeText={handleRemoveFreeText} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
               selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification}
               activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} showLabels={showLabels} setShowLabels={setShowLabels}
               onHoverGroup={setHoveredGroupId} freeTextType={freeTextType} setFreeTextType={setFreeTextType} freeText1={freeText1} setFreeText1={setFreeText1} freeText2={freeText2} setFreeText2={setFreeText2} />
