@@ -1,3 +1,4 @@
+import ClipperLib from 'clipper-lib';
 import { CS_ORIGINS, CS_PREFECTURES } from '../constants';
 import { parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, getExteriorPathString } from './geometry';
 
@@ -122,17 +123,31 @@ export const generateOffsetRings = (pathStr, offset, ringsOverride = null) => {
     const isCW = area !== 0 ? area > 0 : true;
     const normalSign = isHole ? -1 : 1;
 
-    let offsetPoints = offsetRingByEdges(cleanRing, offset, isClosed, isCW, normalSign);
-    
-    if (isClosed && offsetPoints.length >= 3) {
-       const offArea = signedArea(offsetPoints);
-       if (Math.sign(area) !== 0 && Math.sign(offArea) !== 0 && Math.sign(area) !== Math.sign(offArea)) offsetPoints = [];
-    }
-    
-    if (offsetPoints && offsetPoints.length > 0) {
-      offsetPath += `M ${offsetPoints[0].x} ${offsetPoints[0].y} `;
-      for (let i = 1; i < offsetPoints.length; i++) offsetPath += `L ${offsetPoints[i].x} ${offsetPoints[i].y} `;
-      if (isClosed) offsetPath += "Z ";
+    if (isClosed) {
+      const scale = 100000;
+      const co = new ClipperLib.ClipperOffset(2.0, 0.25);
+      const path = cleanRing.map(pt => ({ X: Math.round(pt.x * scale), Y: Math.round(pt.y * scale) }));
+      co.AddPath(path, ClipperLib.JoinType.jtMiter, ClipperLib.EndType.etClosedPolygon);
+      
+      const offsetPaths = new ClipperLib.Paths();
+      const actualOffset = isHole ? -offset : offset;
+      co.Execute(offsetPaths, actualOffset * scale);
+      
+      offsetPaths.forEach(p => {
+        if (p.length > 0) {
+          offsetPath += `M ${p[0].X / scale} ${p[0].Y / scale} `;
+          for (let i = 1; i < p.length; i++) {
+            offsetPath += `L ${p[i].X / scale} ${p[i].Y / scale} `;
+          }
+          offsetPath += "Z ";
+        }
+      });
+    } else {
+      let offsetPoints = offsetRingByEdges(cleanRing, offset, isClosed, isCW, normalSign);
+      if (offsetPoints && offsetPoints.length > 0) {
+        offsetPath += `M ${offsetPoints[0].x} ${offsetPoints[0].y} `;
+        for (let i = 1; i < offsetPoints.length; i++) offsetPath += `L ${offsetPoints[i].x} ${offsetPoints[i].y} `;
+      }
     }
   });
   return offsetPath;
