@@ -422,9 +422,16 @@ export default function App() {
             cy: activeDeco.startCy + (pt.y - activeDeco.startMouseY)
           });
         } else if (activeDeco.dragMode === 'scale') {
-          const dx = pt.x - activeDeco.startCx, dy = pt.y - activeDeco.startCy;
-          const scale = Math.max(0.2, (activeDeco.startScale || 1.0) + (dx - dy) / 200);
-          setDragDecoOverride({ type: 'freetext', id: activeDeco.id, scale });
+          const startDx = activeDeco.startMouseX - activeDeco.startCx;
+          const startDy = activeDeco.startMouseY - activeDeco.startCy;
+          const startDist = Math.sqrt(startDx * startDx + startDy * startDy);
+          const currentDx = pt.x - activeDeco.startCx;
+          const currentDy = pt.y - activeDeco.startCy;
+          const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
+          if (startDist > 0.1) {
+            const scale = Math.max(0.1, (activeDeco.startScale || 1.0) * (currentDist / startDist));
+            setDragDecoOverride({ type: 'freetext', id: activeDeco.id, scale });
+          }
         }
       } else if (activeDeco.type === 'deco') {
         if (activeDeco.dragMode === 'move') {
