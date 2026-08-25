@@ -151,7 +151,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                   <span className="font-medium text-neutral-700">{p.chiban}</span>
                 )}
                 {(p.isCustom || p.parentPoly) && (
-                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors shrink-0 ml-1" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2, Type className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onRemoveFeature([p.id])} className="text-red-500 hover:bg-red-50 p-1 rounded transition-colors shrink-0 ml-1" title={p.isCustom ? "完全に消去します" : "分割/くり抜きを取り消して元の面に戻します"}><Trash2 className="w-3.5 h-3.5" /></button>
                 )}
               </div>
             ))}
@@ -182,7 +182,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                     <span className="font-bold text-neutral-700 truncate">{name}</span>
                  </div>
                  <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
-                 <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2, Type className="w-4 h-4" /></button>
+                 <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
               </div>
             )
           })}
