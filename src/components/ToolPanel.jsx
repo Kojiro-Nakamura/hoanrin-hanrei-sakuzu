@@ -19,7 +19,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           <p className="text-[10px] text-neutral-500 mb-1 leading-tight">地図上の記号や文字をドラッグして位置・角度を調整できます。</p>
           {activeDeco ? (
             <button onClick={onDeleteActiveDeco} className="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2 px-3 rounded transition-colors flex items-center justify-center gap-1 shadow-sm">
-              <Trash2, Type className="w-3 h-3" /> 選択中オブジェクトを削除
+              <Trash2 className="w-3 h-3" /> 選択中オブジェクトを削除
             </button>
           ) : (
             <div className="text-[10px] text-neutral-400 text-center py-2 bg-white rounded border border-neutral-200">オブジェクトが選択されていません</div>
