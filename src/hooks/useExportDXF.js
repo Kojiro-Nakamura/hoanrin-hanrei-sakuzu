@@ -169,24 +169,26 @@ export function useExportDXF({
       } else if (ft.type === 'chiban') {
         const chimoku = ft.text1 || '';
         const chiban = ft.text2 || '';
-        const chibanLen = chiban.length;
-        const circleR = fSize * 0.8;
-        const rectW = Math.max(fSize * 2, chibanLen * fSize * 0.7);
-        const totalW = circleR * 2 + rectW;
         
-        const cx1 = -totalW/2 + circleR;
-        const cx2 = -totalW/2 + circleR*2 + rectW/2;
+        const charW = fSize * 0.55;
+        const chibanW = chiban.length * charW;
+        const circleR = fSize * 0.65;
+        const gap = fSize * 0.2;
+        const totalW = circleR * 2 + gap + chibanW;
         
-        blocksDxf += dxfCreateSolid(cx1 - circleR, -circleR, cx1 - circleR, circleR, cx1 + circleR, -circleR, cx1 + circleR, circleR, "LABELS_BG", 9); // approximate circle solid
-        blocksDxf += dxfCreateCircle(cx1, 0, circleR, "LABELS_BG_FRAME", 7);
-        blocksDxf += dxfCreateText(chimoku, cx1, 0, fSize, "LABELS", 7);
+        const startX = -totalW / 2;
+        const circleCx = startX + circleR;
+        const textStartX = startX + circleR * 2 + gap;
+        const rectX = startX - fSize * 0.4;
+        const rectY = -fSize * 0.85;
+        const rectW = totalW + fSize * 0.8;
+        const rectH = fSize * 1.7;
         
-        const rectX = cx2 - rectW/2;
-        const rectY = -circleR;
-        const rectH = circleR * 2;
         blocksDxf += dxfCreateSolid(rectX, rectY, rectX, rectY + rectH, rectX + rectW, rectY, rectX + rectW, rectY + rectH, "LABELS_BG", 9);
         blocksDxf += dxfCreateLines([{x: rectX, y: rectY}, {x: rectX+rectW, y: rectY}, {x: rectX+rectW, y: rectY+rectH}, {x: rectX, y: rectY+rectH}], true, "LABELS_BG_FRAME", 7);
-        blocksDxf += dxfCreateText(chiban, cx2, 0, fSize, "LABELS", 7);
+        blocksDxf += dxfCreateCircle(circleCx, 0, circleR, "LABELS", 7);
+        blocksDxf += dxfCreateText(chimoku ? chimoku.charAt(0) : '', circleCx, 0, fSize * 0.75, "LABELS", 7);
+        blocksDxf += dxfCreateText(chiban, textStartX + chibanW / 2, 0, fSize, "LABELS", 7);
       }
       
       blocksDxf += "  0\r\nENDBLK\r\n  8\r\n0\r\n";
