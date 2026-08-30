@@ -157,7 +157,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       </div>
     )}
 
-    <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0 mt-auto">
+    <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0">
       <button onClick={() => setSettingsExpanded(!settingsExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
         <span className="flex items-center gap-1.5"><Settings className="w-3.5 h-3.5" /> 共通設定 (DXF / 画面表示)</span>
         {settingsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -187,13 +187,13 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     </div>
 
     {combinedItems.length > 0 && (
-      <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0 flex flex-col mt-1">
-        <button onClick={() => setHistoryExpanded(!historyExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
+      <div className="border border-neutral-200 rounded-lg overflow-hidden flex flex-col mt-1 flex-1 min-h-0">
+        <button onClick={() => setHistoryExpanded(!historyExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors shrink-0">
           <span className="flex items-center gap-1.5"><List className="w-3.5 h-3.5" /> 適用済みの装飾 ({combinedItems.length})</span>
           {historyExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
         {historyExpanded && (
-          <div className="flex flex-col gap-2 p-2 bg-neutral-50 overflow-y-auto max-h-48 border-t border-neutral-200">
+          <div className="flex flex-col gap-2 p-2 bg-neutral-50 overflow-y-auto border-t border-neutral-200 flex-1 min-h-0">
             {combinedItems.map(item => {
               if (item.itemType === 'group') {
                 const group = item;
