@@ -378,7 +378,6 @@ export default function App() {
       startMouseX: pt.x, startMouseY: pt.y
     });
     setSelectedDeco({ type: 'freetext', id: text.id });
-    if (text.scale) setDecorationScale(text.scale);
   }, [getSvgPoint]);
 
   const handleRegionLabelMouseDown = useCallback((e, regionKey, dragMode, center, initialScale = 1.0) => {
