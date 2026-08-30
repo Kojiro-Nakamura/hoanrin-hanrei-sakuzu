@@ -131,7 +131,6 @@ export default function App() {
   const [freeTextType, setFreeTextType] = useState('general');
   const [freeText1, setFreeText1] = useState('');
   const [freeText2, setFreeText2] = useState('');
-  const [screenMagnification, setScreenMagnification] = useState(1.0);
   const [selectedLineStyle, setSelectedLineStyle] = useState('single');
   const [selectedDecoPattern, setSelectedDecoPattern] = useState('none');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
@@ -676,7 +675,7 @@ export default function App() {
   }, [mode, finishDrawing, handleUndo, handleRedo, selectedDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
-  const labelFontSize = (viewBox.w / 150) * (screenMagnification * 1.6) * 0.72;
+  const labelFontSize = (viewBox.w / 150) * decorationScale * 0.72;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
 
@@ -848,7 +847,6 @@ export default function App() {
                 selectedDeco={selectedDeco} 
                 dragDecoOverride={dragDecoOverride} 
                 viewBox={viewBox} 
-                screenMagnification={screenMagnification} 
                 mode={mode} 
                 handleFreeTextMouseDown={handleFreeTextMouseDown} 
               />
@@ -928,7 +926,7 @@ export default function App() {
               freeTexts={currentFreeTexts}
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onRemoveFreeText={handleRemoveFreeText} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
-              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale} screenMagnification={screenMagnification} setScreenMagnification={setScreenMagnification}
+              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale}
               activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} showLabels={showLabels} setShowLabels={setShowLabels}
               onHoverGroup={setHoveredGroupId} freeTextType={freeTextType} setFreeTextType={setFreeTextType} freeText1={freeText1} setFreeText1={setFreeText1} freeText2={freeText2} setFreeText2={setFreeText2} />
 
