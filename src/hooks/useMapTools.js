@@ -126,7 +126,7 @@ export function useMapTools({
           }
           let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
           if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
-          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 });
+          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.0 });
        }
     });
 
