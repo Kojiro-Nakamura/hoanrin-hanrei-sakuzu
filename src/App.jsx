@@ -158,7 +158,24 @@ export default function App() {
     currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, historyLength: history.length,
     commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
   });
+  const combinedBoundingBox = useMemo(() => {
+    let box = data?.boundingBox;
+    if (bgImages.length > 0) {
+      box = box ? { ...box } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+      bgImages.forEach(bg => {
+        if (!bg.bounds) return;
+        box.minX = Math.min(box.minX, bg.bounds.minX);
+        box.minY = Math.min(box.minY, bg.bounds.minY);
+        box.maxX = Math.max(box.maxX, bg.bounds.maxX);
+        box.maxY = Math.max(box.maxY, bg.bounds.maxY);
+      });
+    }
+    return box;
+  }, [data?.boundingBox, bgImages]);
 
+  const baseW = combinedBoundingBox && (combinedBoundingBox.maxX - combinedBoundingBox.minX) > 0
+    ? (combinedBoundingBox.maxX - combinedBoundingBox.minX)
+    : viewBox.w;
 
   const mapTiles = useMapTiles(viewBox, showMap, data?.coordinateSystem || null, mapType, containerRef);
 
@@ -540,24 +557,6 @@ export default function App() {
     }
   }, [activeDeco, dragRegionOverride, dragChibanOverride, dragDecoOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, commitChange]);
 
-  const combinedBoundingBox = useMemo(() => {
-    let box = data?.boundingBox;
-    if (bgImages.length > 0) {
-      box = box ? { ...box } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-      bgImages.forEach(bg => {
-        if (!bg.bounds) return;
-        box.minX = Math.min(box.minX, bg.bounds.minX);
-        box.minY = Math.min(box.minY, bg.bounds.minY);
-        box.maxX = Math.max(box.maxX, bg.bounds.maxX);
-        box.maxY = Math.max(box.maxY, bg.bounds.maxY);
-      });
-    }
-    return box;
-  }, [data?.boundingBox, bgImages]);
-
-  const baseW = combinedBoundingBox && (combinedBoundingBox.maxX - combinedBoundingBox.minX) > 0
-    ? (combinedBoundingBox.maxX - combinedBoundingBox.minX)
-    : viewBox.w;
 
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
