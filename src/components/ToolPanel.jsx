@@ -8,8 +8,8 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     ...freeTexts.map(f => ({ ...f, itemType: 'freetext' }))
   ].sort((a, b) => (parseInt(b.id.split('_')[1]) || 0) - (parseInt(a.id.split('_')[1]) || 0));
 
-  const [settingsExpanded, setSettingsExpanded] = useState(false);
-  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [settingsExpanded, setSettingsExpanded] = useState(true);
+  const [historyExpanded, setHistoryExpanded] = useState(true);
 
   return (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[320px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
