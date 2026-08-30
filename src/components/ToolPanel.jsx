@@ -12,9 +12,10 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
   const [historyExpanded, setHistoryExpanded] = useState(true);
 
   return (
-  <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[320px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
+  <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[320px] rounded-xl shadow-lg border border-neutral-200 z-20 flex flex-col overflow-hidden">
     
-    <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
+    <div className="h-1/2 p-3 flex flex-col gap-2.5 overflow-y-auto border-b border-neutral-200">
+      <div className="flex gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
       <button onClick={() => setMode('select')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='select'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><MousePointerClick className="w-3 h-3"/> 選択</button>
       <button onClick={() => setMode('draw')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='draw'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><Scissors className="w-3 h-3"/> 作図</button>
       <button onClick={() => setMode('edit_deco')} className={`flex-1 py-1.5 text-[10px] sm:text-[11px] font-bold rounded flex items-center justify-center gap-1 transition-all ${mode==='edit_deco'?'bg-white shadow text-indigo-700':'text-neutral-500 hover:bg-neutral-200'}`}><RefreshCw className="w-3 h-3"/> 装飾調整</button>
@@ -156,9 +157,11 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         </div>
       </div>
     )}
+    </div>
 
-    <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0">
-      <button onClick={() => setSettingsExpanded(!settingsExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
+    <div className="h-1/2 p-3 flex flex-col gap-2.5 overflow-hidden">
+      <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0">
+        <button onClick={() => setSettingsExpanded(!settingsExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
         <span className="flex items-center gap-1.5"><Settings className="w-3.5 h-3.5" /> 共通設定 (DXF / 画面表示)</span>
         {settingsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
       </button>
@@ -237,6 +240,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         )}
       </div>
     )}
+    </div>
   </div>
   );
 };
