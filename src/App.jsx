@@ -18,6 +18,7 @@ import { useMapData } from './hooks/useMapData';
 import { useMapTools } from './hooks/useMapTools';
 import { useExportDXF } from './hooks/useExportDXF';
 import { StartScreen } from './components/StartScreen';
+import { FreeTextLayer } from './components/FreeTextLayer';
 
 export default function App() {
   const containerRef = useRef(null);
@@ -953,8 +954,16 @@ export default function App() {
 
               <path d={baseLinePath} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} strokeLinejoin="round" pointerEvents="none" opacity={showMap ? 0.7 : 0.8} />
 
+              <FreeTextLayer 
+                currentFreeTexts={currentFreeTexts} 
+                selectedDeco={selectedDeco} 
+                dragDecoOverride={dragDecoOverride} 
+                viewBox={viewBox} 
+                screenMagnification={screenMagnification} 
+                mode={mode} 
+                handleFreeTextMouseDown={handleFreeTextMouseDown} 
+              />
               {renderRegionLabels()}
-              {renderFreeTexts()}
               {renderPolygons()}
               {currentAppliedGroups.map((group, i) => (
                 <LegendGroup 
