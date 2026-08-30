@@ -693,8 +693,10 @@ export default function App() {
       const fSize = (viewBox.w / 150) * scale * 0.72 * screenMagnification;
       
       if (ft.type === 'general') {
-        const textLen = (ft.text1 || '').length;
-        const boxWidth = Math.max(fSize * 2, textLen * fSize + fSize);
+        const textStr = ft.text1 || '';
+        let displayLen = 0;
+        for (let i = 0; i < textStr.length; i++) displayLen += textStr.charCodeAt(i) > 255 ? 1.0 : 0.55;
+        const boxWidth = Math.max(fSize * 2, displayLen * fSize + fSize * 0.5);
         const boxHeight = fSize * 1.5;
         return (
           <g key={ft.id} transform={`translate(${cx}, ${cy})`} style={{ cursor: mode === 'edit_deco' ? 'move' : 'default', pointerEvents: 'auto' }} onMouseDown={(e) => mode === 'edit_deco' && handleFreeTextMouseDown(e, ft, 'move')} onClick={(e) => e.stopPropagation()}>

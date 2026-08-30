@@ -158,8 +158,10 @@ export function useExportDXF({
       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${ftBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${ftBlockName}\r\n  1\r\n\r\n`;
       
       if (ft.type === 'general') {
-        const textLen = (ft.text1 || '').length;
-        const rectW = Math.max(fSize * 2, textLen * fSize + fSize);
+        const textStr = ft.text1 || '';
+        let displayLen = 0;
+        for (let i = 0; i < textStr.length; i++) displayLen += textStr.charCodeAt(i) > 255 ? 1.0 : 0.55;
+        const rectW = Math.max(fSize * 2, displayLen * fSize + fSize * 0.5);
         const rectH = fSize * 1.5;
         const rectX = -rectW / 2;
         const rectY = -rectH / 2;
