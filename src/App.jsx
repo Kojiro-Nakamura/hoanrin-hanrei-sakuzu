@@ -159,20 +159,6 @@ export default function App() {
     commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
   });
 
-  const combinedBoundingBox = useMemo(() => {
-    let box = data?.boundingBox;
-    if (bgImages.length > 0) {
-      box = box ? { ...box } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
-      bgImages.forEach(bg => {
-        if (!bg.bounds) return;
-        box.minX = Math.min(box.minX, bg.bounds.minX);
-        box.minY = Math.min(box.minY, bg.bounds.minY);
-        box.maxX = Math.max(box.maxX, bg.bounds.maxX);
-        box.maxY = Math.max(box.maxY, bg.bounds.maxY);
-      });
-    }
-    return box;
-  }, [data?.boundingBox, bgImages]);
 
   const mapTiles = useMapTiles(viewBox, showMap, data?.coordinateSystem || null, mapType, containerRef);
 
@@ -198,7 +184,7 @@ export default function App() {
   }, [bgImages, combinedBoundingBox, fitToBoundingBox]);
 
   const { exportToDXF } = useExportDXF({
-    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides, currentFreeTexts
+    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, baseW, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides, currentFreeTexts
   });
 
   const exportToJSON = useCallback(() => {
@@ -554,6 +540,25 @@ export default function App() {
     }
   }, [activeDeco, dragRegionOverride, dragChibanOverride, dragDecoOverride, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, commitChange]);
 
+  const combinedBoundingBox = useMemo(() => {
+    let box = data?.boundingBox;
+    if (bgImages.length > 0) {
+      box = box ? { ...box } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+      bgImages.forEach(bg => {
+        if (!bg.bounds) return;
+        box.minX = Math.min(box.minX, bg.bounds.minX);
+        box.minY = Math.min(box.minY, bg.bounds.minY);
+        box.maxX = Math.max(box.maxX, bg.bounds.maxX);
+        box.maxY = Math.max(box.maxY, bg.bounds.maxY);
+      });
+    }
+    return box;
+  }, [data?.boundingBox, bgImages]);
+
+  const baseW = combinedBoundingBox && (combinedBoundingBox.maxX - combinedBoundingBox.minX) > 0
+    ? (combinedBoundingBox.maxX - combinedBoundingBox.minX)
+    : viewBox.w;
+
   const handleSvgClick = useCallback((e) => {
     if (wasDragged(e)) return;
     setSelectedDeco(null);
@@ -675,7 +680,7 @@ export default function App() {
   }, [mode, finishDrawing, handleUndo, handleRedo, selectedDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
-  const labelFontSize = (viewBox.w / 150) * decorationScale * 0.72;
+  const labelFontSize = (baseW / 150) * decorationScale * 0.72;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
 
@@ -846,7 +851,8 @@ export default function App() {
                 currentFreeTexts={currentFreeTexts} 
                 selectedDeco={selectedDeco} 
                 dragDecoOverride={dragDecoOverride} 
-                viewBox={viewBox} 
+                viewBox={viewBox}
+                baseW={baseW} 
                 mode={mode} 
                 handleFreeTextMouseDown={handleFreeTextMouseDown} 
               />

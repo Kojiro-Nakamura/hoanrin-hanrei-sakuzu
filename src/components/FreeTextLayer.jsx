@@ -5,6 +5,7 @@ export const FreeTextLayer = ({
   selectedDeco,
   dragDecoOverride,
   viewBox,
+  baseW,
   mode,
   handleFreeTextMouseDown,
 }) => {
@@ -20,7 +21,7 @@ export const FreeTextLayer = ({
         const scale = isDragging && dragDecoOverride.scale !== undefined ? dragDecoOverride.scale : (ft.scale || 1.0);
 
         const sw = viewBox.w / 1000;
-        const fSize = (viewBox.w / 150) * scale * 0.72;
+        const fSize = (baseW / 150) * scale * 0.72;
 
         if (ft.type === 'general') {
           const textStr = ft.text1 || '';

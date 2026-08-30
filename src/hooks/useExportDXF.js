@@ -4,7 +4,7 @@ import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCre
 import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
 export function useExportDXF({
-  currentFreeTexts, currentPolygons, currentAppliedGroups, lines, viewBox, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
+  currentFreeTexts, currentPolygons, currentAppliedGroups, lines, viewBox, baseW, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
   const exportToDXF = useCallback(() => {
     const EXPORT_SCALE = 1000.0;
     const extMinX = viewBox.x * EXPORT_SCALE;
@@ -120,7 +120,7 @@ export function useExportDXF({
           if (override.visible !== false) {
              const labelBlockName = `LABEL_BLOCK_${idx}`;
              
-             const fSize = (viewBox.w / 150) * decorationScale * 0.72 * (override.scale ?? 1.0);
+             const fSize = (baseW / 150) * decorationScale * 0.72 * (override.scale ?? 1.0);
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
              const insertCx = finalCx, insertCy = finalCy;
              
@@ -152,7 +152,7 @@ export function useExportDXF({
 
     
     (currentFreeTexts || []).forEach((ft, idx) => {
-      const fSize = (viewBox.w / 150) * (ft.scale || 1.0) * 0.72;
+      const fSize = (baseW / 150) * (ft.scale || 1.0) * 0.72;
       const ftBlockName = `FREETEXT_BLOCK_${idx}`;
       
       blocksDxf += `  0\r\nBLOCK\r\n  8\r\n0\r\n  2\r\n${ftBlockName}\r\n  70\r\n0\r\n  10\r\n0.0\r\n  20\r\n0.0\r\n  30\r\n0.0\r\n  3\r\n${ftBlockName}\r\n  1\r\n\r\n`;
@@ -201,7 +201,7 @@ export function useExportDXF({
 
       if (!region.visible) return;
       const text = region.text;
-      const fSize = (viewBox.w / 150) * decorationScale * 0.72 * 1.5 * region.scale;
+      const fSize = (baseW / 150) * decorationScale * 0.72 * 1.5 * region.scale;
       const rectW = text.length * fSize + fSize;
       const rectH = fSize * 1.5;
       
