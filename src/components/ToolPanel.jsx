@@ -1,5 +1,5 @@
-import React from 'react';
-import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type } from 'lucide-react';
+import React, { useState } from 'react';
+import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type, ChevronDown, ChevronRight, Settings, List, Info } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
 export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
@@ -7,6 +7,9 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     ...appliedGroups.map(g => ({ ...g, itemType: 'group' })),
     ...freeTexts.map(f => ({ ...f, itemType: 'freetext' }))
   ].sort((a, b) => (parseInt(b.id.split('_')[1]) || 0) - (parseInt(a.id.split('_')[1]) || 0));
+
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
 
   return (
   <div className="absolute top-4 right-4 bottom-4 bg-white/95 backdrop-blur-md w-[320px] rounded-xl shadow-lg border border-neutral-200 p-3 z-20 flex flex-col gap-2.5 overflow-y-auto">
@@ -60,7 +63,20 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
         </div>
       )}
 
-      <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
+      {mode === 'draw' && (
+        <div className="flex flex-col gap-1.5 bg-neutral-50 p-2.5 rounded-lg border border-neutral-200 shadow-inner mb-1">
+          <p className="text-[11px] font-bold text-neutral-700 flex items-center gap-1"><Info className="w-3.5 h-3.5" />作図モード</p>
+          <ul className="text-[10px] text-neutral-600 list-disc pl-4 space-y-0.5">
+            <li>マップ上をクリックして頂点を追加します</li>
+            <li>開始点をもう一度クリックすると図形が閉じます</li>
+            <li>Escキーでキャンセルできます</li>
+          </ul>
+        </div>
+      )}
+
+      {mode === 'select' && (
+      <>
+        <div className={`flex flex-col gap-1.5 bg-neutral-50 p-2 rounded-lg border border-neutral-100 shadow-inner transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
         <p className="text-[11px] font-bold text-neutral-600">地目の設定 (丸囲み)</p>
         <div className="flex flex-wrap gap-1">
           {[
@@ -96,27 +112,6 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </select>
         </div>
 
-        <div className="flex flex-col gap-1 mt-1" onWheel={(e) => { e.stopPropagation(); setDecorationScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
-          <div className="flex justify-between items-center">
-            <label className="text-[11px] font-bold text-neutral-600">文字・記号のサイズ (DXF)</label>
-            <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(decorationScale) ? 1.0 : decorationScale) * 100)}%</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button onClick={() => setDecorationScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
-            <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
-            <button onClick={() => setDecorationScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5 mt-2 border-y border-blue-200 bg-blue-50/50 py-2 -mx-2 px-2">
-          <div className="flex justify-between items-center mb-0.5">
-            <label className="flex items-center gap-1.5 cursor-pointer" title="画面上で地番や文字ラベルを表示するか切り替えます（DXFには影響しません）">
-              <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} className="w-3.5 h-3.5 accent-blue-600" />
-              <span className="text-[11px] font-bold text-blue-700">画面上のラベルを表示</span>
-            </label>
-          </div>
-        </div>
-
         <div className={`flex flex-col gap-1 mt-1.5 transition-opacity ${selectedPolygons.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}>
           <button onClick={() => onApplyStyle(selectedLineStyle, selectedDecoPattern)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm py-2.5 px-4 rounded-md transition-colors flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]">
             <Paintbrush className="w-4 h-4" /> 選択中({selectedPolygons.length})に適用
@@ -130,10 +125,12 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </button>
         </div>
       </div>
+      </>
+      )}
     </div>
 
-    {selectedPolygons.length > 0 && (
-      <div className="text-sm text-neutral-600 shrink-0">
+    {mode === 'select' && selectedPolygons.length > 0 && (
+      <div className="text-sm text-neutral-600 shrink-0 mb-1">
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between items-center bg-indigo-50 px-2 py-1.5 rounded border border-indigo-100">
              <span className="font-bold text-indigo-700">選択中: {selectedPolygons.length} 筆/要素</span>
@@ -160,50 +157,84 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       </div>
     )}
 
-    {combinedItems.length > 0 && (
-      <div className="pt-3 border-t border-neutral-200 flex flex-col gap-2 shrink-0">
-        <p className="text-xs font-bold text-neutral-500">適用済みの装飾 ({combinedItems.length})</p>
-        <div className="flex flex-col gap-2">
-          {combinedItems.map(item => {
-            if (item.itemType === 'group') {
-              const group = item;
-              let name = "";
-              if (group.lineStyleId) {
-                 if (group.decoPatternId === 'megane') name = 'メガネ (境界結合)';
-                 else {
-                    const lName = LINE_STYLES.find(l => l.id === group.lineStyleId)?.name || '';
-                    const dName = DECO_PATTERNS.find(d => d.id === group.decoPatternId)?.name || 'なし';
-                    name = lName + ' + ' + dName;
-                 }
-              } else name = '旧スタイル設定'; 
-              
-              return (
-                <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverGroup && onHoverGroup(group.id)} onMouseLeave={() => onHoverGroup && onHoverGroup(null)}>
-                   <div className="flex items-center gap-2 mb-1 pr-6">
-                      <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
-                      <span className="font-bold text-neutral-700 truncate">{name}</span>
-                   </div>
-                   <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
-                   <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              )
-            } else {
-              const ft = item;
-              const name = ft.type === 'chiban' ? '地目＋地番' : 'フリーテキスト';
-              const content = ft.type === 'chiban' ? `${ft.text1 || ''} ${ft.text2 || ''}` : ft.text1 || '';
-              return (
-                <div key={ft.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
-                   <div className="flex items-center gap-2 mb-1 pr-6">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
-                      <span className="font-bold text-neutral-700 truncate">{name}</span>
-                   </div>
-                   <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
-                   <button onClick={() => onRemoveFreeText && onRemoveFreeText(ft.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
-                </div>
-              )
-            }
-          })}
+    <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0 mt-auto">
+      <button onClick={() => setSettingsExpanded(!settingsExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
+        <span className="flex items-center gap-1.5"><Settings className="w-3.5 h-3.5" /> 共通設定 (DXF / 画面表示)</span>
+        {settingsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+      </button>
+      {settingsExpanded && (
+        <div className="p-2.5 bg-neutral-50 flex flex-col gap-3">
+          <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setDecorationScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
+            <div className="flex justify-between items-center">
+              <label className="text-[11px] font-bold text-neutral-600">文字・記号のサイズ (DXF)</label>
+              <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(decorationScale) ? 1.0 : decorationScale) * 100)}%</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setDecorationScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
+              <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
+              <button onClick={() => setDecorationScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
+            </div>
+          </div>
+          
+          <div className="flex justify-between items-center pt-2 border-t border-neutral-200">
+            <label className="flex items-center gap-1.5 cursor-pointer" title="画面上で地番や文字ラベルを表示するか切り替えます（DXFには影響しません）">
+              <input type="checkbox" checked={showLabels} onChange={() => setShowLabels(!showLabels)} className="w-3.5 h-3.5 accent-blue-600" />
+              <span className="text-[11px] font-bold text-blue-700">画面上のラベルを表示</span>
+            </label>
+          </div>
         </div>
+      )}
+    </div>
+
+    {combinedItems.length > 0 && (
+      <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0 flex flex-col mt-1">
+        <button onClick={() => setHistoryExpanded(!historyExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
+          <span className="flex items-center gap-1.5"><List className="w-3.5 h-3.5" /> 適用済みの装飾 ({combinedItems.length})</span>
+          {historyExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
+        {historyExpanded && (
+          <div className="flex flex-col gap-2 p-2 bg-neutral-50 overflow-y-auto max-h-48 border-t border-neutral-200">
+            {combinedItems.map(item => {
+              if (item.itemType === 'group') {
+                const group = item;
+                let name = "";
+                if (group.lineStyleId) {
+                   if (group.decoPatternId === 'megane') name = 'メガネ (境界結合)';
+                   else {
+                      const lName = LINE_STYLES.find(l => l.id === group.lineStyleId)?.name || '';
+                      const dName = DECO_PATTERNS.find(d => d.id === group.decoPatternId)?.name || 'なし';
+                      name = lName + ' + ' + dName;
+                   }
+                } else name = '旧スタイル設定'; 
+                
+                return (
+                  <div key={group.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverGroup && onHoverGroup(group.id)} onMouseLeave={() => onHoverGroup && onHoverGroup(null)}>
+                     <div className="flex items-center gap-2 mb-1 pr-6">
+                        <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
+                        <span className="font-bold text-neutral-700 truncate">{name}</span>
+                     </div>
+                     <div className="text-neutral-500 leading-relaxed line-clamp-2" title={group.chibanList}>{group.polygonIds.length}筆等: {group.chibanList}</div>
+                     <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                )
+              } else {
+                const ft = item;
+                const name = ft.type === 'chiban' ? '地目＋地番' : 'フリーテキスト';
+                const content = ft.type === 'chiban' ? `${ft.text1 || ''} ${ft.text2 || ''}` : ft.text1 || '';
+                return (
+                  <div key={ft.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
+                     <div className="flex items-center gap-2 mb-1 pr-6">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
+                        <span className="font-bold text-neutral-700 truncate">{name}</span>
+                     </div>
+                     <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
+                     <button onClick={() => onRemoveFreeText && onRemoveFreeText(ft.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                )
+              }
+            })}
+          </div>
+        )}
       </div>
     )}
   </div>
