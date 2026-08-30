@@ -1,14 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
+import proj4 from 'proj4';
 import { CS_ORIGINS } from '../constants';
 import { lon2tile, lat2tile, tile2lon, tile2lat } from '../utils/geometry';
 
 export const useMapTiles = (viewBox, showMap, coordinateSystem, mapType, containerRef) => {
-  const [proj4Loaded, setProj4Loaded] = useState(false);
-  useEffect(() => {
-    if (window.proj4) return setProj4Loaded(true);
-    const script = document.createElement('script'); script.src = 'https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js';
-    script.onload = () => setProj4Loaded(true); document.head.appendChild(script);
-  }, []);
+  const proj4Loaded = true;
+
 
   return useMemo(() => {
     if (!showMap || !coordinateSystem || !proj4Loaded || !window.proj4) return [];

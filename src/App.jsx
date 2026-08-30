@@ -1,4 +1,5 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import proj4 from 'proj4';
 import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image } from 'lucide-react';
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
@@ -21,13 +22,6 @@ import { StartScreen } from './components/StartScreen';
 export default function App() {
   const containerRef = useRef(null);
   const lastDrawRef = useRef(0);
-
-  useEffect(() => {
-    if (window.polygonClipping) return;
-    const script = document.createElement('script'); 
-    script.src = 'https://unpkg.com/polygon-clipping@0.15.3/dist/polygon-clipping.umd.js';
-    document.head.appendChild(script);
-  }, []);
 
   const [mode, setMode] = useState('select');
   const [drawingPts, setDrawingPts] = useState([]);

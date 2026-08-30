@@ -1,3 +1,5 @@
+import proj4 from 'proj4';
+import polygonClipping from 'polygon-clipping';
 import ClipperLib from 'clipper-lib';
 import { CS_ORIGINS, CS_PREFECTURES } from '../constants';
 import { parsePathToRings, multiPolyToPath, getBBox, isBBoxIntersect, getClosestPointOnSegment, isPointInside, getPointInsidePolygon, calculatePolygonCenter, makeThickLinePolygon, signedArea, intersectLinesT, getSegmentIntersection, removeSelfIntersections, getExteriorPathString } from './geometry';
