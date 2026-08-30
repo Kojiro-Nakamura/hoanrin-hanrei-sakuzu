@@ -840,7 +840,7 @@ export default function App() {
 
         {hasData && (
           <div className="absolute inset-0 w-full h-full select-none">
-            <svg ref={svgRef} className="w-full h-full outline-none touch-none bg-neutral-100 overflow-visible select-none" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
+            <svg ref={svgRef} className={`w-full h-full outline-none touch-none bg-neutral-100 overflow-visible select-none ${mode === 'add_text' || mode === 'draw' ? 'cursor-crosshair' : ''}`} viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`} 
                  onMouseMove={(e) => { panZoomHandlers.onMouseMove(e); handleSvgMouseMove(e); }} 
                  onMouseUp={(e) => { panZoomHandlers.onMouseUp(e); handleSvgMouseUp(e); }} 
                  onMouseLeave={panZoomHandlers.onMouseLeave} onWheel={panZoomHandlers.onWheel}
