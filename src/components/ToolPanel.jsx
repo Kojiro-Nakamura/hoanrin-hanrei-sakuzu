@@ -49,11 +49,11 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </div>
           
           {freeTextType === 'general' ? (
-            <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="例: 字〇〇、〇〇町" className="w-full text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" />
+            <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="例: 字〇〇、〇〇町" className="w-full text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 bg-white" />
           ) : (
             <div className="flex gap-1">
-              <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="地目(保)" className="w-1/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" maxLength={1} />
-              <input type="text" value={freeText2} onChange={e => setFreeText2(e.target.value)} placeholder="地番(123-4)" className="w-2/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500" />
+              <input type="text" value={freeText1} onChange={e => setFreeText1(e.target.value)} placeholder="地目(保)" className="w-1/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 bg-white" maxLength={1} />
+              <input type="text" value={freeText2} onChange={e => setFreeText2(e.target.value)} placeholder="地番(123-4)" className="w-2/3 text-xs p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 bg-white" />
             </div>
           )}
           <p className="text-[10px] text-indigo-600 leading-tight">👆 内容を入力し、マップ上の配置したい場所をクリックしてください。</p>
