@@ -100,7 +100,10 @@ export const PolygonLayer = ({
                         <text x={circleCx} y={finalCy} fontSize={scaledFontSize * 0.75} fill={isCustom ? "#059669" : "#3f3f46"} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chimoku.charAt(0)}</text>
                         <text x={textStartX} y={finalCy} fontSize={scaledFontSize} fill={isCustom ? "#059669" : "#3f3f46"} fontWeight="bold" textAnchor="start" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                         {isActive && isInteractive && (
-                          <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+                          <>
+                            <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} pointerEvents="auto" />
+                          </>
                         )}
                       </>
                     );
@@ -117,7 +120,10 @@ export const PolygonLayer = ({
                         <text x={finalCx} y={finalCy} fontSize={scaledFontSize} fill="none" stroke={showMap && mapType === 'seamlessphoto' ? "rgba(0, 0, 0, 0.8)" : "#ffffff"} strokeWidth={scaledFontSize * (showMap && mapType === 'seamlessphoto' ? 0.2 : 0.15)} strokeLinejoin="round" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                         <text x={finalCx} y={finalCy} fontSize={scaledFontSize} fill={isCustom ? "#059669" : (showMap && mapType === 'seamlessphoto' ? "#ffffff" : "#3f3f46")} fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{poly.chiban}</text>
                         {isActive && isInteractive && (
-                          <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+                          <>
+                            <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} pointerEvents="auto" />
+                          </>
                         )}
                       </>
                     );

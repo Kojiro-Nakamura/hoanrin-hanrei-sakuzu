@@ -55,7 +55,10 @@ export const RegionLabelLayer = ({
             <text x={finalCx} y={finalCy} fontSize={fSize} fill="#3f3f46" fontWeight="bold" textAnchor="middle" dominantBaseline="central" pointerEvents="none">{text}</text>
 
             {isActive && isInteractive && (
-              <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+              <>
+                <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
+                <circle cx={rectX + rectW} cy={rectY} r={fSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleRegionLabelMouseDown(e, region.key, 'scale', { x: region.baseCx, y: region.baseCy + defaultOffsetY }); }} pointerEvents="auto" />
+              </>
             )}
           </g>
         );
