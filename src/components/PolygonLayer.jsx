@@ -102,7 +102,7 @@ export const PolygonLayer = ({
                         {isActive && isInteractive && (
                           <>
                             <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
-                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} pointerEvents="auto" />
+                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center, (override.scale || 1.0)); }} pointerEvents="auto" />
                           </>
                         )}
                       </>
@@ -122,7 +122,7 @@ export const PolygonLayer = ({
                         {isActive && isInteractive && (
                           <>
                             <rect x={rectX} y={rectY} width={rectW} height={rectH} fill="none" stroke="#ca8a04" strokeWidth={viewBox.w / 500} strokeDasharray={`${viewBox.w / 200} ${viewBox.w / 200}`} pointerEvents="none" />
-                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center); }} pointerEvents="auto" />
+                            <circle cx={rectX + rectW} cy={rectY} r={scaledFontSize * 0.3} fill="white" stroke="#ca8a04" strokeWidth={viewBox.w / 500} style={{ cursor: 'ne-resize' }} onMouseDown={(e) => { e.stopPropagation(); handleChibanLabelMouseDown(e, poly.id, 'scale', poly.center, (override.scale || 1.0)); }} pointerEvents="auto" />
                           </>
                         )}
                       </>

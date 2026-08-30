@@ -439,7 +439,7 @@ export const parseKml = (kmlText, fileId = "", defaultSysNum = "auto") => {
   
   let sysNum = defaultSysNum !== "auto" ? parseInt(defaultSysNum, 10) : null;
   let projStr = null;
-  if (sysNum && window.proj4) {
+  if (sysNum && proj4) {
     const origin = CS_ORIGINS[sysNum];
     if (origin) {
       projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
@@ -461,7 +461,7 @@ export const parseKml = (kmlText, fileId = "", defaultSysNum = "auto") => {
     }
 
     // Extract coordinates to determine sysNum if not yet determined (i.e. if "auto" was passed)
-    if (!sysNum && window.proj4) {
+    if (!sysNum && proj4) {
       const coordsEls = Array.from(placemark.getElementsByTagName("*")).filter(el => el.localName === "coordinates");
       if (coordsEls.length > 0) {
         const coordPairs = coordsEls[0].textContent.trim().split(/\s+/);
@@ -499,8 +499,8 @@ export const parseKml = (kmlText, fileId = "", defaultSysNum = "auto") => {
           const lon = parseFloat(parts[0]), lat = parseFloat(parts[1]);
           if (isNaN(lon) || isNaN(lat)) continue;
           
-          if (projStr && window.proj4) {
-            const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+          if (projStr && proj4) {
+            const [e, n] = proj4('WGS84', projStr, [lon, lat]);
             pts.push({ x: e, y: -n });
           } else {
             pts.push({ x: lon, y: -lat });

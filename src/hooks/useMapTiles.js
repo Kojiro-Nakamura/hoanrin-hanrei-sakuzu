@@ -8,13 +8,13 @@ export const useMapTiles = (viewBox, showMap, coordinateSystem, mapType, contain
 
 
   return useMemo(() => {
-    if (!showMap || !coordinateSystem || !proj4Loaded || !window.proj4) return [];
+    if (!showMap || !coordinateSystem || !proj4Loaded || !proj4) return [];
     const origin = CS_ORIGINS[coordinateSystem];
     if (!origin) return [];
     const projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
     try {
       const cx = viewBox.x + viewBox.w / 2, cy = viewBox.y + viewBox.h / 2;
-      const [, c_lat] = window.proj4(projStr, 'WGS84', [cx, -cy]);
+      const [, c_lat] = proj4(projStr, 'WGS84', [cx, -cy]);
       const clientW = containerRef.current?.clientWidth || 800;
       let z = Math.log2((40075016 * Math.cos(c_lat * Math.PI / 180)) / (256 * (viewBox.w / clientW)));
       let renderZ = Math.max(2, Math.min(18, Math.round(z)));
@@ -44,8 +44,8 @@ export const useMapTiles = (viewBox, showMap, coordinateSystem, mapType, contain
         }
       }
 
-      const [nw_lon, nw_lat] = window.proj4(projStr, 'WGS84', [renderMinX, -renderMinY]);
-      const [se_lon, se_lat] = window.proj4(projStr, 'WGS84', [renderMaxX, -renderMaxY]);
+      const [nw_lon, nw_lat] = proj4(projStr, 'WGS84', [renderMinX, -renderMinY]);
+      const [se_lon, se_lat] = proj4(projStr, 'WGS84', [renderMaxX, -renderMaxY]);
       let xMin = lon2tile(Math.min(nw_lon, se_lon), renderZ), xMax = lon2tile(Math.max(nw_lon, se_lon), renderZ);
       let yMin = lat2tile(Math.max(nw_lat, se_lat), renderZ), yMax = lat2tile(Math.min(nw_lat, se_lat), renderZ);
 
@@ -58,8 +58,8 @@ export const useMapTiles = (viewBox, showMap, coordinateSystem, mapType, contain
       const tiles = [], ext = mapType === 'seamlessphoto' ? 'jpg' : 'png';
       for (let x = xMin; x <= xMax; x++) {
         for (let y = yMin; y <= yMax; y++) {
-          const [e1, n1] = window.proj4('WGS84', projStr, [tile2lon(x, renderZ), tile2lat(y, renderZ)]);
-          const [e2, n2] = window.proj4('WGS84', projStr, [tile2lon(x + 1, renderZ), tile2lat(y + 1, renderZ)]);
+          const [e1, n1] = proj4('WGS84', projStr, [tile2lon(x, renderZ), tile2lat(y, renderZ)]);
+          const [e2, n2] = proj4('WGS84', projStr, [tile2lon(x + 1, renderZ), tile2lat(y + 1, renderZ)]);
           const bw = Math.abs(e2 - e1), bh = Math.abs(-n2 - -n1);
           tiles.push({ key: `${renderZ}-${x}-${y}-${mapType}`, url: `https://cyberjapandata.gsi.go.jp/xyz/${mapType}/${renderZ}/${x}/${y}.${ext}`, x: Math.min(e1, e2) - bw * 0.005, y: Math.min(-n1, -n2) - bh * 0.005, w: bw * 1.01, h: bh * 1.01 });
         }

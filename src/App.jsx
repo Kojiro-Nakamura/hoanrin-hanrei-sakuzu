@@ -403,8 +403,9 @@ export default function App() {
     if (activeDeco) {
       const dx = pt.x - activeDeco.startCx, dy = pt.y - activeDeco.startCy;
       if (activeDeco.type === 'region_label') {
+        const prev = currentRegionOverrides[activeDeco.id] || { dx: 0, dy: 0, scale: 1.0 };
         if (activeDeco.dragMode === 'move') {
-          setDragRegionOverride({ regionKey: activeDeco.id, dx, dy });
+          setDragRegionOverride({ ...prev, regionKey: activeDeco.id, dx, dy });
         } else if (activeDeco.dragMode === 'scale') {
           const startDx = activeDeco.startMouseX - activeDeco.startCx;
           const startDy = activeDeco.startMouseY - activeDeco.startCy;
@@ -414,12 +415,13 @@ export default function App() {
           const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
           if (startDist > 0.1) {
             const scale = Math.max(0.1, (activeDeco.startScale || 1.0) * (currentDist / startDist));
-            setDragRegionOverride({ regionKey: activeDeco.id, scale });
+            setDragRegionOverride({ ...prev, regionKey: activeDeco.id, scale });
           }
         }
       } else if (activeDeco.type === 'chiban_label') {
+        const prev = currentChibanOverrides[activeDeco.id] || { dx: 0, dy: 0, scale: 1.0 };
         if (activeDeco.dragMode === 'move') {
-          setDragChibanOverride({ polyId: activeDeco.id, dx, dy });
+          setDragChibanOverride({ ...prev, polyId: activeDeco.id, dx, dy });
         } else if (activeDeco.dragMode === 'scale') {
           const startDx = activeDeco.startMouseX - activeDeco.startCx;
           const startDy = activeDeco.startMouseY - activeDeco.startCy;
@@ -429,7 +431,7 @@ export default function App() {
           const currentDist = Math.sqrt(currentDx * currentDx + currentDy * currentDy);
           if (startDist > 0.1) {
             const scale = Math.max(0.1, (activeDeco.startScale || 1.0) * (currentDist / startDist));
-            setDragChibanOverride({ polyId: activeDeco.id, scale });
+            setDragChibanOverride({ ...prev, polyId: activeDeco.id, scale });
           }
         }
       } else if (activeDeco.type === 'freetext') {
@@ -527,7 +529,7 @@ export default function App() {
     } else {
       setSnappedPt(null);
     }
-  }, [mode, isDragging, activeDeco, getSvgPoint, snapData, drawingPts, viewBox.w]);
+  }, [mode, isDragging, activeDeco, getSvgPoint, snapData, drawingPts, viewBox.w, currentRegionOverrides, currentChibanOverrides]);
 
   const handleSvgMouseUp = useCallback((e) => {
     if (activeDeco) {
