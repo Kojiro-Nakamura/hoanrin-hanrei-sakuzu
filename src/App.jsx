@@ -801,7 +801,7 @@ export default function App() {
             <p className="text-sm text-neutral-600">現在の作業データは全て破棄・リセットされます。よろしいですか？</p>
             <div className="flex gap-2 justify-end mt-2">
               <button onClick={() => setShowResetConfirm(false)} className="px-4 py-2 rounded-lg text-sm font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200">キャンセル</button>
-              <button onClick={confirmReset} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセット</button>
+              <button onClick={() => { confirmReset(); setBgImages([]); }} className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-red-600 hover:bg-red-700">リセット</button>
             </div>
           </div>
         </div>
