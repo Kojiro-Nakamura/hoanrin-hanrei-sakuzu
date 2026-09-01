@@ -55,6 +55,31 @@ export async function parseTiffZip(file) {
     }
   }
 
+  // Heuristic: If it's saved as RGB but visually grayscale (e.g. grayscale drawing saved in RGB format),
+  // we want to treat it as grayscale so the layer color stays blue.
+  // We sample pixels to see if there is any significant color difference (R != G != B).
+  if (isColor && rgba) {
+    let colorPixels = 0;
+    const threshold = 15; // Ignore slight compression noise
+    // Check up to 100,000 pixels distributed across the image
+    const step = Math.max(4, Math.floor(rgba.length / 4 / 100000) * 4);
+    for (let i = 0; i < rgba.length; i += step) {
+      const r = rgba[i];
+      const g = rgba[i+1];
+      const b = rgba[i+2];
+      
+      if (Math.abs(r - g) > threshold || Math.abs(r - b) > threshold || Math.abs(g - b) > threshold) {
+        colorPixels++;
+        if (colorPixels > 100) {
+          break; // Definitely color
+        }
+      }
+    }
+    if (colorPixels <= 100) {
+      isColor = false; // Practically grayscale
+    }
+  }
+
   // Downscale if too large to prevent canvas toDataURL crashes
   const MAX_DIM = 4096;
   let scale = 1;
