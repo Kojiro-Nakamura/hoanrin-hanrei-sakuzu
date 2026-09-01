@@ -229,7 +229,6 @@ export default function App() {
   const snapData = useMemo(() => {
     const pts = [], segments = [];
     currentPolygons.forEach(p => {
-      if (p.isCustom) return;
       parsePathToRings(p.pathData).forEach(ring => {
         ring.forEach(pt => pts.push({ x: pt.x, y: pt.y }));
         for(let i=0; i<ring.length-1; i++) segments.push([{ x: ring[i].x, y: ring[i].y }, { x: ring[i+1].x, y: ring[i+1].y }]);

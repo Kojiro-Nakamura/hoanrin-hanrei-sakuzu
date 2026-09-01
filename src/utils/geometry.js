@@ -29,6 +29,7 @@ export const parsePathToRings = (pathStr) => {
       i += 1;
     } else { i += 1; }
   }
+  if (currentRing.length > 0) rings.push(currentRing);
   return rings;
 };
 
