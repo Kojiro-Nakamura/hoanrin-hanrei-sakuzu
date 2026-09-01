@@ -45,6 +45,16 @@ export async function parseTiffZip(file) {
   const width = ifds[0].width;
   const height = ifds[0].height;
   
+  // Detect if image is color (PhotometricInterpretation)
+  // 0, 1: Grayscale, 2: RGB, 3: Palette, 5: CMYK, 6: YCbCr
+  let isColor = false;
+  if (ifds[0].t262 && ifds[0].t262.length > 0) {
+    const pi = ifds[0].t262[0];
+    if (pi === 2 || pi === 3 || pi === 5 || pi === 6) {
+      isColor = true;
+    }
+  }
+
   // Downscale if too large to prevent canvas toDataURL crashes
   const MAX_DIM = 4096;
   let scale = 1;
@@ -90,7 +100,8 @@ export async function parseTiffZip(file) {
     scale,
     canvasWidth,
     canvasHeight,
-    rgbaLength: rgba.length
+    rgbaLength: rgba.length,
+    isColor
   });
 
   return {
@@ -98,6 +109,7 @@ export async function parseTiffZip(file) {
     dataUrl,
     tfw,
     width,
-    height
+    height,
+    isColor
   };
 }

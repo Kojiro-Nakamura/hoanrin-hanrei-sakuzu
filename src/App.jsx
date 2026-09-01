@@ -103,7 +103,7 @@ export default function App() {
       });
 
       setBgImages(prev => {
-        const newArr = [...prev, { dataUrl, matrix, width, height, bounds, name: result.name }];
+        const newArr = [...prev, { dataUrl, matrix, width, height, bounds, name: result.name, isColor: result.isColor }];
         
         let box = data?.boundingBox ? { ...data.boundingBox } : { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
         newArr.forEach(bg => {
@@ -701,7 +701,8 @@ export default function App() {
 
   const hasData = data.lines.length > 0 || history.length > 0;
   const labelFontSize = (baseW / 150) * decorationScale * 0.72;
-  const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : "#2563eb";
+  const isTiffColor = showBgImages && bgImages.length > 0 && bgImages[bgImages.length - 1].isColor;
+  const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : (isTiffColor ? "#ffff00" : "#2563eb");
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
 
   
