@@ -862,7 +862,7 @@ export default function App() {
               ))}
 
               {showBgImages && bgImages.map((bg, idx) => (
-                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} style={{ opacity: 0.6, mixBlendMode: 'multiply' }} />
+                <image key={idx} href={bg.dataUrl} width={bg.width} height={bg.height} transform={`matrix(${bg.matrix.join(',')})`} />
               ))}
 
               <path d={baseLinePath} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} strokeLinejoin="round" pointerEvents="none" opacity={showMap ? 0.7 : 0.8} />
