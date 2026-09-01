@@ -171,8 +171,9 @@ export default function App() {
     return box;
   }, [data?.boundingBox, bgImages]);
 
-  const baseW = combinedBoundingBox && (combinedBoundingBox.maxX - combinedBoundingBox.minX) > 0
-    ? (combinedBoundingBox.maxX - combinedBoundingBox.minX)
+  const dataBBox = data?.boundingBox;
+  const baseW = dataBBox && (dataBBox.maxX - dataBBox.minX) > 0
+    ? (dataBBox.maxX - dataBBox.minX)
     : viewBox.w;
 
   const mapTiles = useMapTiles(viewBox, showMap, data?.coordinateSystem || null, mapType, containerRef);
