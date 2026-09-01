@@ -43,23 +43,24 @@ export const PolygonLayer = ({
 
         return (
           <g key={`poly-${poly.id}`}>
-            {isCustom && <path d={poly.pathData} fill={poly.isClosed === false ? "none" : "rgba(16, 185, 129, 0.05)"} stroke="#10b981" strokeWidth={viewBox.w / 800} pointerEvents="none" fillRule="evenodd" />}
-            {!isCustom && (!poly.curves || poly.isModified) && <path d={poly.pathData} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} pointerEvents="none" fillRule="evenodd" opacity={0.8} />}
-            
-            {/* Selection Highlight */}
+            {/* Selection Highlight (drawn behind the main path to act as an outline/offset) */}
             {(isSelected || isHovered) && (
               <path
                 d={poly.pathData}
                 pointerEvents="none"
-                fill={poly.isClosed === false ? "none" : (isSelected ? "rgba(234, 179, 8, 0.4)" : "rgba(234, 179, 8, 0.2)")}
-                stroke={isSelected ? "#ca8a04" : "rgba(234, 179, 8, 0.6)"}
-                strokeWidth={isSelected ? viewBox.w / 300 : viewBox.w / 600}
+                fill={poly.isClosed === false ? "none" : (isSelected ? "rgba(234, 179, 8, 0.2)" : "rgba(234, 179, 8, 0.1)")}
+                stroke="#facc15"
+                strokeWidth={viewBox.w / 200}
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                opacity={isSelected ? "0.8" : "0.6"}
                 fillRule="evenodd"
               />
             )}
 
+            {isCustom && <path d={poly.pathData} fill={poly.isClosed === false ? "none" : "rgba(16, 185, 129, 0.05)"} stroke="#10b981" strokeWidth={viewBox.w / 800} pointerEvents="none" fillRule="evenodd" />}
+            {!isCustom && (!poly.curves || poly.isModified) && <path d={poly.pathData} fill="none" stroke={strokeColor} strokeWidth={viewBox.w / (showMap ? 800 : 1000)} pointerEvents="none" fillRule="evenodd" opacity={0.8} />}
+            
             {drawLabel && (() => {
               const finalCx = poly.center.x + (override.dx || 0);
               const finalCy = poly.center.y + (override.dy || 0);
