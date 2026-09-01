@@ -40,7 +40,7 @@ export default function App() {
 
   const handleLoadTiffZip = async (file) => {
     try {
-      if (data?.coordinateSystem == null || !window.proj4) {
+      if (data?.coordinateSystem == null || !proj4) {
         setError("座標系が設定されていません。先にKML図面を読み込んで座標系を設定してください。");
         return;
       }
@@ -54,27 +54,24 @@ export default function App() {
       const targetProj = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
 
       // EPSG:3857 (Web Mercator) def
-      if (!window.proj4.defs('EPSG:3857')) {
-        window.proj4.defs('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs');
+      if (!proj4.defs('EPSG:3857')) {
+        proj4.defs('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0.0 +lon_0=0.0 +x_0=0.0 +y_0=0 +k=1.0 +units=m +nadgrids=@null +wktext +no_defs');
       }
 
       // Auto-detect source projection from TFW coordinates
-      let sourceProj = 'WGS84'; // Default to EPSG:4326 (degrees)
-      if (Math.abs(tfw.C) > 1000000 || Math.abs(tfw.F) > 1000000) {
-        // Likely EPSG:3857 (Web Mercator)
-        sourceProj = 'EPSG:3857';
-      } else if (Math.abs(tfw.C) > 180 || Math.abs(tfw.F) > 90) {
-        // Likely already in Plane Rectangular
-        sourceProj = targetProj; 
-      }
+      // WGS84 lat/lon are around -180~180. Plane rectangular coords are large (thousands). Web Mercator is huge (millions).
+      let sourceProj = 'EPSG:3857';
+      if (Math.abs(tfw.C) < 180 && Math.abs(tfw.F) < 90) sourceProj = 'WGS84';
+      else if (Math.abs(tfw.C) < 1000000 && Math.abs(tfw.F) < 1000000) sourceProj = targetProj; // Assume it's already in target flat coords
 
+      // Transform corners from source to target planar coords
       const tl = { x: tfw.C, y: tfw.F };
       const tr = { x: tfw.A * width + tfw.C, y: tfw.D * width + tfw.F };
       const bl = { x: tfw.B * height + tfw.C, y: tfw.E * height + tfw.F };
 
-      const p_tl = window.proj4(sourceProj, targetProj, [tl.x, tl.y]);
-      const p_tr = window.proj4(sourceProj, targetProj, [tr.x, tr.y]);
-      const p_bl = window.proj4(sourceProj, targetProj, [bl.x, bl.y]);
+      const p_tl = proj4(sourceProj, targetProj, [tl.x, tl.y]);
+      const p_tr = proj4(sourceProj, targetProj, [tr.x, tr.y]);
+      const p_bl = proj4(sourceProj, targetProj, [bl.x, bl.y]);
 
       const svg_tl = { x: p_tl[0], y: -p_tl[1] };
       const svg_tr = { x: p_tr[0], y: -p_tr[1] };
