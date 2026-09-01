@@ -44,7 +44,7 @@ export async function parseTiffZip(file) {
   const width = image.getWidth();
   const height = image.getHeight();
   
-  const rasters = await image.readRasters();
+  const rgb = await image.readRGB();
   
   // Downscale if too large to prevent canvas toDataURL crashes
   const MAX_DIM = 4096;
@@ -63,17 +63,15 @@ export async function parseTiffZip(file) {
   const imageData = ctx.createImageData(canvasWidth, canvasHeight);
   const data = imageData.data;
 
-  // Check if rasters is interleaved or array of channels
-  const isInterleaved = !Array.isArray(rasters) && !(rasters[0] && rasters[0].length);
-  const numChannels = isInterleaved ? Math.floor(rasters.length / (width * height)) : rasters.length;
+  // readRGB always returns interleaved data (usually 3 or 4 channels).
+  const numChannels = Math.floor(rgb.length / (width * height));
   
   // Find min/max for normalization if it's float or uint16
   let maxVal = 255;
-  const sampleData = isInterleaved ? rasters : rasters[0];
-  if (sampleData instanceof Uint16Array) maxVal = 65535;
-  else if (sampleData instanceof Float32Array || sampleData instanceof Float64Array) {
+  if (rgb instanceof Uint16Array) maxVal = 65535;
+  else if (rgb instanceof Float32Array || rgb instanceof Float64Array) {
     let m = 0;
-    for(let i=0; i<Math.min(sampleData.length, 10000); i++) if(sampleData[i] > m) m = sampleData[i];
+    for(let i=0; i<Math.min(rgb.length, 10000); i++) if(rgb[i] > m) m = rgb[i];
     maxVal = m > 0 ? m : 1.0;
   }
   
@@ -86,29 +84,12 @@ export async function parseTiffZip(file) {
       if (srcX >= width || srcY >= height) continue;
       
       const dstIdx = (y * canvasWidth + x) * 4;
-      const srcIdx = srcY * width + srcX;
+      const srcIdx = (srcY * width + srcX) * numChannels;
       
-      if (isInterleaved) {
-        if (numChannels === 1) {
-          const val = rasters[srcIdx] * multiplier;
-          data[dstIdx] = val; data[dstIdx+1] = val; data[dstIdx+2] = val; data[dstIdx+3] = 255;
-        } else if (numChannels >= 3) {
-          data[dstIdx] = rasters[srcIdx * numChannels] * multiplier;
-          data[dstIdx+1] = rasters[srcIdx * numChannels + 1] * multiplier;
-          data[dstIdx+2] = rasters[srcIdx * numChannels + 2] * multiplier;
-          data[dstIdx+3] = numChannels >= 4 ? rasters[srcIdx * numChannels + 3] * multiplier : 255;
-        }
-      } else {
-        if (numChannels === 1) {
-          const val = rasters[0][srcIdx] * multiplier;
-          data[dstIdx] = val; data[dstIdx+1] = val; data[dstIdx+2] = val; data[dstIdx+3] = 255;
-        } else if (numChannels >= 3) {
-          data[dstIdx] = rasters[0][srcIdx] * multiplier;
-          data[dstIdx+1] = rasters[1][srcIdx] * multiplier;
-          data[dstIdx+2] = rasters[2][srcIdx] * multiplier;
-          data[dstIdx+3] = numChannels >= 4 ? rasters[3][srcIdx] * multiplier : 255;
-        }
-      }
+      data[dstIdx]   = rgb[srcIdx] * multiplier;
+      data[dstIdx+1] = rgb[srcIdx + 1] * multiplier;
+      data[dstIdx+2] = rgb[srcIdx + 2] * multiplier;
+      data[dstIdx+3] = (numChannels >= 4) ? (rgb[srcIdx + 3] * multiplier) : 255;
     }
   }
 
@@ -123,10 +104,9 @@ export async function parseTiffZip(file) {
     scale,
     canvasWidth,
     canvasHeight,
-    isInterleaved,
     numChannels,
     maxVal,
-    sampleDataLength: sampleData.length
+    sampleDataLength: rgb.length
   });
 
   return {
