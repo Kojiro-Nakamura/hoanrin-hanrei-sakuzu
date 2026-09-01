@@ -383,16 +383,18 @@ export default function App() {
   const handleRegionLabelMouseDown = useCallback((e, regionKey, dragMode, center, initialScale = 1.0) => {
     const pt = getSvgPoint(e);
     if (!pt) return;
-    setActiveDeco({ type: 'region_label', id: regionKey, dragMode, startCx: center.x, startCy: center.y, startScale: initialScale, startMouseX: pt.x, startMouseY: pt.y });
+    const prev = currentRegionOverrides[regionKey] || { dx: 0, dy: 0 };
+    setActiveDeco({ type: 'region_label', id: regionKey, dragMode, startCx: center.x, startCy: center.y, startScale: initialScale, startMouseX: pt.x, startMouseY: pt.y, startDx: prev.dx, startDy: prev.dy });
     setSelectedDeco({ type: 'region_label', id: regionKey });
-  }, [getSvgPoint]);
+  }, [getSvgPoint, currentRegionOverrides]);
 
   const handleChibanLabelMouseDown = useCallback((e, polyId, dragMode, center, initialScale = 1.0) => {
     const pt = getSvgPoint(e);
     if (!pt) return;
-    setActiveDeco({ type: 'chiban_label', id: polyId, dragMode, startCx: center.x, startCy: center.y, startScale: initialScale, startMouseX: pt.x, startMouseY: pt.y });
+    const prev = currentChibanOverrides[polyId] || { dx: 0, dy: 0 };
+    setActiveDeco({ type: 'chiban_label', id: polyId, dragMode, startCx: center.x, startCy: center.y, startScale: initialScale, startMouseX: pt.x, startMouseY: pt.y, startDx: prev.dx, startDy: prev.dy });
     setSelectedDeco({ type: 'chiban_label', id: polyId });
-  }, [getSvgPoint]);
+  }, [getSvgPoint, currentChibanOverrides]);
 
   const handleSvgMouseMove = useCallback((e) => {
     const pt = getSvgPoint(e);
@@ -400,11 +402,12 @@ export default function App() {
     setMouseSvgPt(pt);
 
     if (activeDeco) {
-      const dx = pt.x - activeDeco.startCx, dy = pt.y - activeDeco.startCy;
       if (activeDeco.type === 'region_label') {
         const prev = currentRegionOverrides[activeDeco.id] || { dx: 0, dy: 0, scale: 1.0 };
         if (activeDeco.dragMode === 'move') {
-          setDragRegionOverride({ ...prev, regionKey: activeDeco.id, dx, dy });
+          const newDx = (activeDeco.startDx || 0) + (pt.x - activeDeco.startMouseX);
+          const newDy = (activeDeco.startDy || 0) + (pt.y - activeDeco.startMouseY);
+          setDragRegionOverride({ ...prev, regionKey: activeDeco.id, dx: newDx, dy: newDy });
         } else if (activeDeco.dragMode === 'scale') {
           const startDx = activeDeco.startMouseX - activeDeco.startCx;
           const startDy = activeDeco.startMouseY - activeDeco.startCy;
@@ -420,7 +423,9 @@ export default function App() {
       } else if (activeDeco.type === 'chiban_label') {
         const prev = currentChibanOverrides[activeDeco.id] || { dx: 0, dy: 0, scale: 1.0 };
         if (activeDeco.dragMode === 'move') {
-          setDragChibanOverride({ ...prev, polyId: activeDeco.id, dx, dy });
+          const newDx = (activeDeco.startDx || 0) + (pt.x - activeDeco.startMouseX);
+          const newDy = (activeDeco.startDy || 0) + (pt.y - activeDeco.startMouseY);
+          setDragChibanOverride({ ...prev, polyId: activeDeco.id, dx: newDx, dy: newDy });
         } else if (activeDeco.dragMode === 'scale') {
           const startDx = activeDeco.startMouseX - activeDeco.startCx;
           const startDy = activeDeco.startMouseY - activeDeco.startCy;
