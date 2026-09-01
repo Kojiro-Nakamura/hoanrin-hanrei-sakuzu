@@ -265,7 +265,7 @@ export default function App() {
 
     const actionId = Date.now().toString();
     const newPoly = {
-      id: 'custom_' + actionId, chiban: forceClose ? 'XXX-X' : '', pathData: newPath, center, curves: null, isCustom: true, isClosed: forceClose, splitGroupId: actionId
+      id: 'custom_' + actionId, chiban: '', pathData: newPath, center, curves: null, isCustom: true, isClosed: forceClose, splitGroupId: actionId
     };
     
     let nextPolygons = [...currentPolygons];
