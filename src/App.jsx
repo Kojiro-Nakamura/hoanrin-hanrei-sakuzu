@@ -206,6 +206,8 @@ export default function App() {
     const projectData = {
       lines: data.lines, polygons: currentPolygons, appliedGroups: currentAppliedGroups,
       regionOverrides: currentRegionOverrides, chibanOverrides: currentChibanOverrides,
+      freeTexts: currentFreeTexts,
+      bgImages: bgImages,
       boundingBox: data.boundingBox, coordinateSystem: data.coordinateSystem, fileInfo: data.fileInfo
     };
     const blob = new Blob([JSON.stringify(projectData)], { type: 'application/json' });

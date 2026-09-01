@@ -61,6 +61,7 @@ export function useMapData({
                    }
                    return { ...prev, lines: newLines, boundingBox: newBBox };
                });
+               if (setBgImages && parsed.bgImages) setBgImages(prev => [...prev, ...parsed.bgImages]);
                commitChange([...currentPolygons, ...(parsed.polygons || [])], [...currentAppliedGroups, ...(parsed.appliedGroups || [])], { ...currentRegionOverrides, ...(parsed.regionOverrides || {}) }, { ...currentChibanOverrides, ...(parsed.chibanOverrides || {}) }, [...(currentFreeTexts || []), ...(parsed.freeTexts || [])]);
            } else {
                setData({ lines: parsed.lines || [], boundingBox: parsed.boundingBox || null, coordinateSystem: parsed.coordinateSystem ?? null, fileInfo: parsed.fileInfo || { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' } });
@@ -72,6 +73,7 @@ export function useMapData({
                   freeTexts: parsed.freeTexts || []
                }]);
                setHistoryIndex(0);
+               if (setBgImages && parsed.bgImages) setBgImages(parsed.bgImages);
                if (parsed.boundingBox) setTimeout(() => fitToBoundingBox(parsed.boundingBox), 50);
            }
            return;
