@@ -40,8 +40,8 @@ export default function App() {
 
   const handleLoadTiffZip = async (file) => {
     try {
-      if (!data?.coordinateSystem || !window.proj4) {
-        setError("先にKML図面を読み込んで座標系を設定してください。");
+      if (data?.coordinateSystem == null || !window.proj4) {
+        setError("座標系が設定されていません。先にKML図面を読み込んで座標系を設定してください。");
         return;
       }
       setLoading(true);

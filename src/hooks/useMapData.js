@@ -61,7 +61,7 @@ export function useMapData({
                });
                commitChange([...currentPolygons, ...(parsed.polygons || [])], [...currentAppliedGroups, ...(parsed.appliedGroups || [])], { ...currentRegionOverrides, ...(parsed.regionOverrides || {}) }, { ...currentChibanOverrides, ...(parsed.chibanOverrides || {}) }, [...(currentFreeTexts || []), ...(parsed.freeTexts || [])]);
            } else {
-               setData({ lines: parsed.lines || [], boundingBox: parsed.boundingBox || null, coordinateSystem: parsed.coordinateSystem || null, fileInfo: parsed.fileInfo || { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' } });
+               setData({ lines: parsed.lines || [], boundingBox: parsed.boundingBox || null, coordinateSystem: parsed.coordinateSystem ?? null, fileInfo: parsed.fileInfo || { name: file.name, size: (file.size / 1024).toFixed(1) + ' KB' } });
                setHistory([{ 
                   polygons: parsed.polygons || [], 
                   appliedGroups: parsed.appliedGroups || [],
@@ -160,7 +160,7 @@ export function useMapData({
     try {
       const dbData = await loadFromDB();
       if (dbData && dbData.boundingBox) {
-        setData({ lines: dbData.lines || [], boundingBox: dbData.boundingBox || null, coordinateSystem: dbData.coordinateSystem || null, fileInfo: dbData.fileInfo || null });
+        setData({ lines: dbData.lines || [], boundingBox: dbData.boundingBox || null, coordinateSystem: dbData.coordinateSystem ?? null, fileInfo: dbData.fileInfo || null });
         setHistory([{ 
           polygons: dbData.polygons || [], appliedGroups: dbData.appliedGroups || [],
           regionOverrides: dbData.regionOverrides || {}, chibanOverrides: dbData.chibanOverrides || {},
