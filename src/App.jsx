@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import proj4 from 'proj4';
-import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image } from 'lucide-react';
+import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image, Settings, Trash2 } from 'lucide-react';
 
 import { DB_NAME, DB_VERSION, STORE_NAME, CS_ORIGINS, LINE_STYLES, DECO_PATTERNS } from './constants';
 import { openDB, saveToDB, loadFromDB } from './utils/db';
@@ -37,6 +37,7 @@ export default function App() {
   const [hoveredPolygon, setHoveredPolygon] = useState(null);
   const [bgImages, setBgImages] = useState([]);
   const [showBgImages, setShowBgImages] = useState(true);
+  const [showBgManager, setShowBgManager] = useState(false);
 
   const handleLoadTiffZip = async (file) => {
     try {
@@ -933,7 +934,10 @@ export default function App() {
                 <button onClick={() => fitToBoundingBox(combinedBoundingBox)} className="p-2.5 rounded-lg shadow-md hover:bg-neutral-50 text-neutral-700 transition-colors border border-neutral-200 bg-white" title="全体を表示"><Maximize className="w-5 h-5" /></button>
                 <button onClick={() => setShowMap(!showMap)} disabled={!data.coordinateSystem} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showMap ? 'bg-indigo-100 text-indigo-700' : 'bg-white text-neutral-700'} ${!data.coordinateSystem && 'opacity-50'}`} title="地理院地図"><Globe className="w-5 h-5" /></button>
                 {bgImages.length > 0 && (
-                  <button onClick={() => setShowBgImages(!showBgImages)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showBgImages ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-neutral-700'}`} title="TIF背景表示"><Image className="w-5 h-5" /></button>
+                  <>
+                    <button onClick={() => setShowBgImages(!showBgImages)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showBgImages ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-neutral-700'}`} title="TIF背景表示"><Image className="w-5 h-5" /></button>
+                    <button onClick={() => setShowBgManager(!showBgManager)} className={`p-2.5 rounded-lg shadow-md transition-colors border border-neutral-200 ${showBgManager ? 'bg-amber-100 text-amber-700' : 'bg-white text-neutral-700'}`} title="TIF背景の管理・削除"><Settings className="w-5 h-5" /></button>
+                  </>
                 )}
                 {showMap && (
                   <div className="bg-white px-3 py-2 rounded-lg shadow-md border border-neutral-200 flex items-center gap-2">
@@ -947,6 +951,35 @@ export default function App() {
                 )}
               </div>
             </div>
+
+            {showBgManager && bgImages.length > 0 && (
+                <div className="absolute top-16 left-4 bg-white p-3 rounded-lg shadow-xl border border-neutral-200 z-20 w-[280px]">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-neutral-700">読み込み済みTIF背景</h3>
+                    <span className="text-xs text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">{bgImages.length}枚</span>
+                  </div>
+                  <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+                    {bgImages.map((bg, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-neutral-50 hover:bg-neutral-100 p-2 rounded border border-neutral-200 transition-colors">
+                        <div className="flex flex-col overflow-hidden mr-2">
+                          <span className="text-xs font-medium text-neutral-700 truncate" title={bg.name}>{bg.name || `背景 ${idx + 1}`}</span>
+                          <span className="text-[10px] text-neutral-500 mt-0.5">{bg.isColor ? '航空写真等 (カラー)' : '図面等 (白黒)'}</span>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setBgImages(prev => prev.filter((_, i) => i !== idx));
+                            if (bgImages.length === 1) setShowBgManager(false);
+                          }} 
+                          className="p-1.5 text-red-500 hover:bg-red-50 hover:text-red-600 rounded transition-colors shrink-0" 
+                          title="この背景を削除"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             <ToolPanel 
               mode={mode} setMode={setMode} selectedPolygons={selectedPolygons} polygons={currentPolygons} appliedGroups={currentAppliedGroups} 
@@ -966,4 +999,5 @@ export default function App() {
     </div>
   );
 }
+
 
