@@ -5,7 +5,8 @@ import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
   const combinedItems = [
     ...appliedGroups.map(g => ({ ...g, itemType: 'group' })),
-    ...freeTexts.map(f => ({ ...f, itemType: 'freetext' }))
+    ...freeTexts.map(f => ({ ...f, itemType: 'freetext' })),
+    ...polygons.filter(p => p.isCustom).map(p => ({ ...p, itemType: 'custom_poly' }))
   ].sort((a, b) => (parseInt(b.id.split('_')[1]) || 0) - (parseInt(a.id.split('_')[1]) || 0));
 
   const [settingsExpanded, setSettingsExpanded] = useState(true);
@@ -220,7 +221,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                      <button onClick={() => onRemoveGroup(group.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 )
-              } else {
+              } else if (item.itemType === 'freetext') {
                 const ft = item;
                 const name = ft.type === 'chiban' ? '地目＋地番' : 'フリーテキスト';
                 const content = ft.type === 'chiban' ? `${ft.text1 || ''} ${ft.text2 || ''}` : ft.text1 || '';
@@ -232,6 +233,20 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                      </div>
                      <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
                      <button onClick={() => onRemoveFreeText && onRemoveFreeText(ft.id)} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                )
+              } else if (item.itemType === 'custom_poly') {
+                const poly = item;
+                const name = poly.isClosed ? '作図ポリゴン' : '作図ライン';
+                const content = poly.chiban ? `地番: ${poly.chiban}` : '地番なし';
+                return (
+                  <div key={poly.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
+                     <div className="flex items-center gap-2 mb-1 pr-6">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></div>
+                        <span className="font-bold text-neutral-700 truncate">{name}</span>
+                     </div>
+                     <div className="text-neutral-500 leading-relaxed line-clamp-2 truncate" title={content}>{content}</div>
+                     <button onClick={() => onRemoveFeature && onRemoveFeature([poly.id])} className="absolute top-2 right-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded transition-colors" title="削除"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 )
               }
