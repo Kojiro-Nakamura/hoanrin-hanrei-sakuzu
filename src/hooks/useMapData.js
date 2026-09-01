@@ -8,6 +8,7 @@ export function useMapData({
   currentRegionOverrides,
   currentChibanOverrides,
   currentFreeTexts,
+  bgImages,
   historyLength,
   commitChange,
   fitToBoundingBox,
@@ -17,7 +18,8 @@ export function useMapData({
   setDrawingPts,
   setShowMap,
   setMode,
-  setShowResetConfirm
+  setShowResetConfirm,
+  setBgImages
 }) {
   const [data, setData] = useState({ lines: [], polygons: [], boundingBox: null, coordinateSystem: null, fileInfo: null });
   const [loading, setLoading] = useState(false);
@@ -131,22 +133,24 @@ export function useMapData({
   const confirmReset = useCallback(() => {
     setData({ lines: [], polygons: [], boundingBox: null, coordinateSystem: null, fileInfo: null });
     setHistory([]); setHistoryIndex(-1); setSelectedPolygons([]); setDrawingPts([]);
+    if (setBgImages) setBgImages([]);
     if (setShowResetConfirm) setShowResetConfirm(false); 
     setShowMap(false);
-  }, [setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowResetConfirm, setShowMap]);
+  }, [setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowResetConfirm, setShowMap, setBgImages]);
 
   useEffect(() => {
     if (data.boundingBox && historyLength > 0) {
       saveToDB({
         lines: data.lines, polygons: currentPolygons,
-      appliedGroups: currentAppliedGroups,
-      regionOverrides: currentRegionOverrides,
-      chibanOverrides: currentChibanOverrides,
-      freeTexts: currentFreeTexts,
+        appliedGroups: currentAppliedGroups,
+        regionOverrides: currentRegionOverrides,
+        chibanOverrides: currentChibanOverrides,
+        freeTexts: currentFreeTexts,
+        bgImages: bgImages,
         boundingBox: data.boundingBox, coordinateSystem: data.coordinateSystem, fileInfo: data.fileInfo
       }).catch(e => console.error("Auto-save failed", e));
     }
-  }, [data, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, historyLength]);
+  }, [data, currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, bgImages, historyLength]);
 
   useEffect(() => {
     loadFromDB().then(dbData => {
@@ -167,6 +171,7 @@ export function useMapData({
           freeTexts: dbData.freeTexts || []
         }]);
         setHistoryIndex(0);
+        if (setBgImages) setBgImages(dbData.bgImages || []);
         setTimeout(() => fitToBoundingBox(dbData.boundingBox), 50);
       }
     } catch(e) {

@@ -152,8 +152,8 @@ export default function App() {
   const {
     data, loading, setLoading, error, dbMessage, setDbMessage, hasSavedData, setError, loadFile, startFreehandDraw, confirmReset, handleLoadSavedData
   } = useMapData({
-    currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, historyLength: history.length,
-    commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm
+    currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, currentFreeTexts, bgImages, historyLength: history.length,
+    commitChange, fitToBoundingBox, setHistory, setHistoryIndex, setSelectedPolygons, setDrawingPts, setShowMap, setMode, setShowResetConfirm, setBgImages
   });
   const combinedBoundingBox = useMemo(() => {
     let box = data?.boundingBox;
