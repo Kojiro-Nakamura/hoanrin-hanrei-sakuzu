@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type, ChevronDown, ChevronRight, Settings, List, Info } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, onHoverPolygon, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
   const combinedItems = [
     ...appliedGroups.map(g => ({ ...g, itemType: 'group' })),
     ...freeTexts.map(f => ({ ...f, itemType: 'freetext' })),
@@ -240,7 +240,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
                 const name = poly.isClosed ? '作図ポリゴン' : '作図ライン';
                 const content = poly.chiban ? `地番: ${poly.chiban}` : '地番なし';
                 return (
-                  <div key={poly.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all">
+                  <div key={poly.id} className="flex flex-col gap-1 text-xs bg-white p-2.5 rounded-lg border border-neutral-200 shadow-sm relative group hover:border-indigo-400 hover:shadow-md cursor-pointer transition-all" onMouseEnter={() => onHoverPolygon && onHoverPolygon(poly.id)} onMouseLeave={() => onHoverPolygon && onHoverPolygon(null)}>
                      <div className="flex items-center gap-2 mb-1 pr-6">
                         <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></div>
                         <span className="font-bold text-neutral-700 truncate">{name}</span>
