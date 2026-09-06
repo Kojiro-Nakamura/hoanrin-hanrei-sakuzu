@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { UploadCloud, CloudDownload, ExternalLink } from 'lucide-react';
 import { CS_ORIGINS } from '../constants';
 
@@ -35,13 +35,17 @@ export function StartScreen({
         />
       </label>
 
-      <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 text-sm font-bold">
+      <div className="mt-6 flex flex-col sm:flex-row items-center gap-4 text-sm font-bold flex-wrap justify-center">
         <a href="https://front.geospatial.jp/moj-chizu-xml-readme/moj-chizu-xml-download/" target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
           <ExternalLink className="w-4 h-4" /> 法務省登記所備付地図データのダウンロード
         </a>
         <span className="hidden sm:inline text-neutral-300">|</span>
         <a href="https://front.geospatial.jp/usermanager/signup" target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
           <ExternalLink className="w-4 h-4" /> G空間情報センター新規ユーザー登録
+        </a>
+        <span className="hidden sm:inline text-neutral-300">|</span>
+        <a href="https://labs.mapple.com/mapplexml.html#9.39/33.9309/135.4995" target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-800 hover:underline flex items-center gap-1">
+          <ExternalLink className="w-4 h-4" /> MAPPLE法務局地図ビューア
         </a>
       </div>
 
