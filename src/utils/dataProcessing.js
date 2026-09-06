@@ -582,6 +582,29 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     }
   }
 
+  // まずプロパティから明示的な座標系を探す
+  if (!sysNum) {
+    for (let i = 0; i < features.length; i++) {
+      const props = features[i].properties || {};
+      for (const key in props) {
+        if (key.includes('座標系')) {
+          const match = String(props[key]).match(/(\d+)系/);
+          if (match) {
+            sysNum = parseInt(match[1], 10);
+            break;
+          }
+        }
+      }
+      if (sysNum) break;
+    }
+    if (sysNum && proj4) {
+      const origin = CS_ORIGINS[sysNum];
+      if (origin) {
+        projStr = "+proj=tmerc +lat_0=" + origin[0] + " +lon_0=" + origin[1] + " +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+      }
+    }
+  }
+
   // 最初の座標を探してsysNumを自動判定
   if (!sysNum && proj4) {
     for (let i = 0; i < features.length; i++) {
@@ -618,12 +641,28 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     if (!feature.geometry) return;
     
     const props = feature.properties || {};
+    // まず完全一致で探す
     let chiban = props["地番"] || props.name || props.id || "GeoJSON-" + i;
-    for (const key in props) {
-      if (key.includes("地番") || key.includes("番")) {
-        chiban = props[key];
-        break;
+    let oaza = props["大字名"] || props["大字"] || "";
+    let koaza = props["小字名"] || props["小字"] || "";
+    let chimoku = props["地目名"] || props["地目"] || "";
+
+    // 完全一致で見つからなかった場合のフォールバック（部分一致）
+    if (!props["地番"] && !props.name && !props.id) {
+      for (const key in props) {
+        if (key === "地図番号" || key === "図郭番号") continue; // 地番ではないものを除外
+        if (key.includes("地番") || key.includes("番")) {
+          chiban = props[key];
+          break;
+        }
       }
+    }
+    
+    // 大字・小字・地目のフォールバック
+    for (const key in props) {
+      if (!oaza && key.includes("大字")) oaza = props[key];
+      if (!koaza && key.includes("小字")) koaza = props[key];
+      if (!chimoku && key.includes("地目")) chimoku = props[key];
     }
     chiban = String(chiban || "").trim();
 
@@ -670,9 +709,9 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         polyList.push({
           id: `${prefix}${feature.id || i}-${polyIdx}`,
           chiban: chiban,
-          chimoku: "",
-          oaza: "",
-          koaza: "",
+          chimoku: chimoku,
+          oaza: oaza,
+          koaza: koaza,
           pathData,
           curves: null,
           center,
@@ -721,4 +760,6 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     coordinateSystem: sysNum 
   };
 };
+
+
 
