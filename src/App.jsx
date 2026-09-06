@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+﻿import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import proj4 from 'proj4';
 import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image, Settings, Trash2 } from 'lucide-react';
 
@@ -39,6 +39,30 @@ export default function App() {
   const [showBgImages, setShowBgImages] = useState(true);
   const [showBgManager, setShowBgManager] = useState(false);
 
+  const toggleFlipBg = (idx, axis) => {
+    setBgImages(prev => {
+      const next = [...prev];
+      const bg = { ...next[idx] };
+      const m = [...bg.matrix];
+      const w = bg.width;
+      const h = bg.height;
+      if (axis === 'x') {
+        const trX = m[0] * w + m[4];
+        const trY = m[1] * w + m[5];
+        m[4] = trX; m[5] = trY;
+        m[0] = -m[0]; m[1] = -m[1];
+      } else if (axis === 'y') {
+        const blX = m[2] * h + m[4];
+        const blY = m[3] * h + m[5];
+        m[4] = blX; m[5] = blY;
+        m[2] = -m[2]; m[3] = -m[3];
+      }
+      bg.matrix = m;
+      next[idx] = bg;
+      return next;
+    });
+  };
+
   const handleLoadTiffZip = async (file) => {
     try {
       if (data?.coordinateSystem == null || !proj4) {
@@ -66,20 +90,9 @@ export default function App() {
       else if (Math.abs(tfw.C) < 1000000 && Math.abs(tfw.F) < 1000000) sourceProj = targetProj; // Assume it's already in target flat coords
 
       // Transform corners from source to target planar coords
-      let tl, tr, bl;
-      // ヒューリスティック: 通常のTFWはA(Xスケール)が正、E(Yスケール)が負。
-      // もしAが負またはEが正の場合、日本の測量ソフト特有の「X=北、Y=東」として出力されている可能性が高い。
-      if (tfw.A < 0 || tfw.E > 0) {
-        // XとYが逆転している (A=北スケール, E=東スケール, C=北座標, F=東座標)
-        tl = { x: tfw.F, y: tfw.C }; // xに東(F)、yに北(C)を入れる
-        tr = { x: tfw.D * width + tfw.F, y: tfw.A * width + tfw.C };
-        bl = { x: tfw.E * height + tfw.F, y: tfw.B * height + tfw.C };
-      } else {
-        // 通常のGIS出力
-        tl = { x: tfw.C, y: tfw.F };
-        tr = { x: tfw.A * width + tfw.C, y: tfw.D * width + tfw.F };
-        bl = { x: tfw.B * height + tfw.C, y: tfw.E * height + tfw.F };
-      }
+      const tl = { x: tfw.C, y: tfw.F };
+      const tr = { x: tfw.A * width + tfw.C, y: tfw.D * width + tfw.F };
+      const bl = { x: tfw.B * height + tfw.C, y: tfw.E * height + tfw.F };
 
       const p_tl = proj4(sourceProj, targetProj, [tl.x, tl.y]);
       const p_tr = proj4(sourceProj, targetProj, [tr.x, tr.y]);
@@ -979,6 +992,10 @@ export default function App() {
                           <span className="text-xs font-medium text-neutral-700 truncate" title={bg.name}>{bg.name || `背景 ${idx + 1}`}</span>
                           <span className="text-[10px] text-neutral-500 mt-0.5">{bg.isColor ? '航空写真等 (カラー)' : '図面等 (白黒)'}</span>
                         </div>
+                          <div className="flex gap-1 mr-2">
+                            <button onClick={() => toggleFlipBg(idx, 'x')} className="px-2 py-1 bg-white border border-neutral-300 text-neutral-600 hover:bg-neutral-100 rounded text-[10px] shadow-sm font-medium" title="左右反転">左右反転</button>
+                            <button onClick={() => toggleFlipBg(idx, 'y')} className="px-2 py-1 bg-white border border-neutral-300 text-neutral-600 hover:bg-neutral-100 rounded text-[10px] shadow-sm font-medium" title="上下反転">上下反転</button>
+                          </div>
                         <button 
                           onClick={() => {
                             setBgImages(prev => prev.filter((_, i) => i !== idx));
@@ -1013,6 +1030,9 @@ export default function App() {
     </div>
   );
 }
+
+
+
 
 
 
