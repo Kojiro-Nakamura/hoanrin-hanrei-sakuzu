@@ -565,7 +565,7 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     throw new Error("GeoJSONのパースに失敗しました。");
   }
 
-  const prefix = fileId ? "${fileId}_" : "";
+  const prefix = fileId ? `${fileId}_` : "";
   const polyList = [];
   const parsedLines = [];
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -582,14 +582,10 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
   features.forEach((feature, i) => {
     if (!feature.geometry) return;
     
-    // プロパティから名前を取得（文字化けしていてもキー名で探すか、地番等の一般的なもの）
     const props = feature.properties || {};
-    // "地番" や "name" が含まれるか確認。マップルの場合は "地番" が使われることが多い。
-    // キーが文字化けしている可能性もあるので、値の傾向から探すのもありだが、とりあえずわかるものを列挙。
     let name = props["地番"] || props.name || props.id || "GeoJSON-" + i;
-    // 文字化け対策: プロパティのキーに「番」や「地」が含まれていたらそれを採用するなどのヒューリスティック
     for (const key in props) {
-      if (key.includes("地番") || key.includes("n")) {
+      if (key.includes("地番") || key.includes("番")) {
         name = props[key];
         break;
       }
@@ -608,8 +604,8 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         return { lat: c[1], lng: c[0] };
       }));
       polyList.push({
-        id: "${prefix}-",
-        name: name,
+        id: `${prefix}${feature.id || i}-${polyIdx}`,
+        name: String(name || "").trim(),
         outerBoundary: outer,
         innerBoundaries: inners,
         styles: {},
@@ -629,10 +625,10 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         return { lat: c[1], lng: c[0] };
       });
       parsedLines.push({
-        id: "${prefix}-L",
+        id: `${prefix}${feature.id || i}-L`,
         points: points,
         type: "Line",
-        name: name
+        name: String(name || "").trim()
       });
     }
   });
