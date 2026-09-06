@@ -597,10 +597,10 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
       }
       if (sysNum) break;
       
-      // 県名からの推測 (プロパティに県名や市区町村名がある場合)
+      // 県名や市町村名からの推測 (プロパティやファイル名)
       for (const key in props) {
-        const val = String(props[key]);
-        if (val.includes('和歌山') || val.includes('京都') || val.includes('大阪') || val.includes('奈良') || val.includes('滋賀') || val.includes('三重') || val.includes('福井')) sysNum = 6;
+        const val = String(props[key]) + " " + fileId;
+        if (val.includes('和歌山') || val.includes('日高') || val.includes('京都') || val.includes('大阪') || val.includes('奈良') || val.includes('滋賀') || val.includes('三重') || val.includes('福井')) sysNum = 6;
         else if (val.includes('北海道')) sysNum = 12;
         else if (val.includes('青森') || val.includes('岩手') || val.includes('宮城') || val.includes('秋田') || val.includes('山形')) sysNum = 10;
         else if (val.includes('東京') || val.includes('神奈川') || val.includes('埼玉') || val.includes('千葉') || val.includes('茨城') || val.includes('栃木') || val.includes('群馬') || val.includes('福島')) sysNum = 9;
@@ -787,6 +787,8 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     coordinateSystem: sysNum 
   };
 };
+
+
 
 
 
