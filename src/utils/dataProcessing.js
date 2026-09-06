@@ -582,7 +582,7 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     }
   }
 
-  // まずプロパティから明示的な座標系を探す
+  // まずプロパティから明示的な座標系や市区町村を探す
   if (!sysNum) {
     for (let i = 0; i < features.length; i++) {
       const props = features[i].properties || {};
@@ -596,16 +596,29 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         }
       }
       if (sysNum) break;
-    }
-    if (sysNum && proj4) {
-      const origin = CS_ORIGINS[sysNum];
-      if (origin) {
-        projStr = "+proj=tmerc +lat_0=" + origin[0] + " +lon_0=" + origin[1] + " +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
+      
+      // 県名からの推測 (プロパティに県名や市区町村名がある場合)
+      for (const key in props) {
+        const val = String(props[key]);
+        if (val.includes('和歌山') || val.includes('京都') || val.includes('大阪') || val.includes('奈良') || val.includes('滋賀') || val.includes('三重') || val.includes('福井')) sysNum = 6;
+        else if (val.includes('北海道')) sysNum = 12;
+        else if (val.includes('青森') || val.includes('岩手') || val.includes('宮城') || val.includes('秋田') || val.includes('山形')) sysNum = 10;
+        else if (val.includes('東京') || val.includes('神奈川') || val.includes('埼玉') || val.includes('千葉') || val.includes('茨城') || val.includes('栃木') || val.includes('群馬') || val.includes('福島')) sysNum = 9;
+        else if (val.includes('新潟') || val.includes('長野') || val.includes('山梨') || val.includes('静岡')) sysNum = 8;
+        else if (val.includes('愛知') || val.includes('岐阜') || val.includes('石川') || val.includes('富山')) sysNum = 7;
+        else if (val.includes('兵庫') || val.includes('徳島')) sysNum = 5;
+        else if (val.includes('香川') || val.includes('愛媛') || val.includes('高知') || val.includes('鳥取') || val.includes('島根')) sysNum = 4;
+        else if (val.includes('岡山') || val.includes('広島') || val.includes('山口')) sysNum = 3;
+        else if (val.includes('福岡') || val.includes('佐賀') || val.includes('熊本') || val.includes('大分') || val.includes('宮崎') || val.includes('鹿児島')) sysNum = 2;
+        else if (val.includes('長崎')) sysNum = 1;
+        else if (val.includes('沖縄')) sysNum = 15;
+        if (sysNum) break;
       }
+      if (sysNum) break;
     }
   }
 
-  // 最初の座標を探してsysNumを自動判定
+  // 最初の座標を探してsysNumを自動判定 (距離)
   if (!sysNum && proj4) {
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
@@ -616,17 +629,28 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         }
         const lon = coords[0], lat = coords[1];
         if (!isNaN(lon) && !isNaN(lat)) {
-          let bestSys = 1, minDist = Infinity;
-          for (const pref of CS_PREFECTURES) {
-            const dist = Math.pow(lon - pref.lon, 2) + Math.pow(lat - pref.lat, 2);
-            if (dist < minDist) { minDist = dist; bestSys = pref.sys; }
+          // 距離判定の前に、和歌山などの特殊エリアを緯度経度のバウンディングボックスで救済
+          if (lon > 135.0 && lon < 136.0 && lat > 33.3 && lat < 34.5) sysNum = 6; // 和歌山南部
+          else if (lon > 134.5 && lon < 135.5 && lat > 34.0 && lat < 34.5) sysNum = 6; // 和歌山・淡路島付近
+          else {
+            let bestSys = 1, minDist = Infinity;
+            for (const pref of CS_PREFECTURES) {
+              // 経度差より緯度差を重くする(南北に細長いため)
+              const dist = Math.pow((lon - pref.lon) * 0.8, 2) + Math.pow(lat - pref.lat, 2);
+              if (dist < minDist) { minDist = dist; bestSys = pref.sys; }
+            }
+            sysNum = bestSys;
           }
-          sysNum = bestSys;
-          const origin = CS_ORIGINS[sysNum];
-          projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
           break;
         }
       }
+    }
+  }
+
+  if (sysNum && proj4) {
+    const origin = CS_ORIGINS[sysNum];
+    if (origin) {
+      projStr = "+proj=tmerc +lat_0=" + origin[0] + " +lon_0=" + origin[1] + " +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs";
     }
   }
 
@@ -763,6 +787,8 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     coordinateSystem: sysNum 
   };
 };
+
+
 
 
 
