@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Map as MapIcon, Home, Download, UploadCloud, Undo, Redo } from 'lucide-react';
 
 export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExportJSON, onLoadFile, onLoadTiffZip, onUndo, onRedo, canUndo, canRedo }) => (
@@ -16,7 +16,7 @@ export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExp
         </button>
         <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-md transition-colors text-sm font-bold shadow-sm cursor-pointer" title="XML/KML/作業状況ファイル追加読込">
           <UploadCloud className="w-4 h-4" /> 追加読込
-          <input type="file" multiple className="hidden" accept=".xml,.kml,.json" onChange={e => { Array.from(e.target.files).forEach(f => onLoadFile(f, true)); e.target.value = ''; }} />
+          <input type="file" multiple className="hidden" accept=".xml,.kml,.json,.geojson" onChange={e => { Array.from(e.target.files).forEach(f => onLoadFile(f, true)); e.target.value = ''; }} />
         </label>
         <label className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-indigo-700 hover:bg-indigo-50 border border-indigo-200 rounded-md transition-colors text-sm font-bold shadow-sm cursor-pointer" title="TIFF背景(ZIP)追加読込">
           <UploadCloud className="w-4 h-4" /> TIF背景
@@ -32,3 +32,4 @@ export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExp
     )}
   </header>
 );
+

@@ -556,3 +556,95 @@ export const parseKml = (kmlText, fileId = "", defaultSysNum = "auto") => {
   if (polyList.length === 0 || finalMinX === Infinity) throw new Error("KMLにポリゴンデータが見つかりませんでした。");
   return { lines: parsedLines, polygons: polyList, boundingBox: { minX: finalMinX, minY: finalMinY, maxX: finalMaxX, maxY: finalMaxY }, coordinateSystem: sysNum };
 };
+
+export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
+  let geojson;
+  try {
+    geojson = JSON.parse(jsonText);
+  } catch (e) {
+    throw new Error("GeoJSONのパースに失敗しました。");
+  }
+
+  const prefix = fileId ? "${fileId}_" : "";
+  const polyList = [];
+  const parsedLines = [];
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  const features = geojson.type === "FeatureCollection" ? geojson.features : (geojson.type === "Feature" ? [geojson] : []);
+
+  const updateBounds = (x, y) => {
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  };
+
+  features.forEach((feature, i) => {
+    if (!feature.geometry) return;
+    
+    // プロパティから名前を取得（文字化けしていてもキー名で探すか、地番等の一般的なもの）
+    const props = feature.properties || {};
+    // "地番" や "name" が含まれるか確認。マップルの場合は "地番" が使われることが多い。
+    // キーが文字化けしている可能性もあるので、値の傾向から探すのもありだが、とりあえずわかるものを列挙。
+    let name = props["地番"] || props.name || props.id || "GeoJSON-" + i;
+    // 文字化け対策: プロパティのキーに「番」や「地」が含まれていたらそれを採用するなどのヒューリスティック
+    for (const key in props) {
+      if (key.includes("地番") || key.includes("n")) {
+        name = props[key];
+        break;
+      }
+    }
+
+    const geomType = feature.geometry.type;
+    const coords = feature.geometry.coordinates;
+
+    const processPolygonCoords = (polyCoords, polyIdx) => {
+      const outer = polyCoords[0].map(c => {
+        updateBounds(c[0], c[1]);
+        return { lat: c[1], lng: c[0] };
+      });
+      const inners = polyCoords.slice(1).map(ring => ring.map(c => {
+        updateBounds(c[0], c[1]);
+        return { lat: c[1], lng: c[0] };
+      }));
+      polyList.push({
+        id: "${prefix}-",
+        name: name,
+        outerBoundary: outer,
+        innerBoundaries: inners,
+        styles: {},
+        texts: []
+      });
+    };
+
+    if (geomType === "Polygon") {
+      processPolygonCoords(coords, 0);
+    } else if (geomType === "MultiPolygon") {
+      coords.forEach((polyCoords, j) => {
+        processPolygonCoords(polyCoords, j);
+      });
+    } else if (geomType === "LineString") {
+      const points = coords.map(c => {
+        updateBounds(c[0], c[1]);
+        return { lat: c[1], lng: c[0] };
+      });
+      parsedLines.push({
+        id: "${prefix}-L",
+        points: points,
+        type: "Line",
+        name: name
+      });
+    }
+  });
+
+  if (minX === Infinity) {
+    minX = 0; minY = 0; maxX = 0; maxY = 0;
+  }
+
+  return { 
+    lines: parsedLines, 
+    polygons: polyList, 
+    boundingBox: { minX, minY, maxX, maxY }, 
+    coordinateSystem: defaultSysNum 
+  };
+};

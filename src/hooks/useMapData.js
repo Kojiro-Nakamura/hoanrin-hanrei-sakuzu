@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { saveToDB, loadFromDB } from '../utils/db';
-import { parseMojXml, parseKml } from '../utils/dataProcessing';
+import { parseMojXml, parseKml, parseGeoJson } from '../utils/dataProcessing';
 
 export function useMapData({
   currentPolygons,
@@ -30,8 +30,8 @@ export function useMapData({
   const loadFile = useCallback((file, isAppend = false) => {
     const isXml = file.name.toLowerCase().endsWith('.xml');
     const isKml = file.name.toLowerCase().endsWith('.kml');
-    const isJson = file.name.toLowerCase().endsWith('.json');
-    if (!isXml && !isKml && !isJson) return setError("XML, KML, または作業状況ファイル(.json)を選択してください。");
+    const isJson = file.name.toLowerCase().endsWith('.json') || file.name.toLowerCase().endsWith('.geojson');
+    if (!isXml && !isKml && !isJson) return setError("XML, KML, GeoJSON, または作業状況ファイルを選択してください。");
 
     setLoading(true); setError(null);
     
@@ -45,8 +45,28 @@ export function useMapData({
          if (headStr.toLowerCase().includes('utf-8') || isJson) encoding = 'utf-8';
          const text = new TextDecoder(encoding).decode(uint8);
          
+         const fileId = Math.random().toString(36).substring(2, 8);
+         let defaultSys = "auto";
+         if (isAppend && data?.coordinateSystem) {
+           defaultSys = data.coordinateSystem;
+         }
+
+         let parsed = null;
+         let isWorkspaceJson = false;
+
          if (isJson) {
-           const parsed = JSON.parse(text);
+           const jsonObj = JSON.parse(text);
+           if (jsonObj.type === "FeatureCollection" || jsonObj.type === "Feature") {
+             parsed = parseGeoJson(text, fileId, defaultSys);
+           } else {
+             isWorkspaceJson = true;
+             parsed = jsonObj;
+           }
+         } else {
+           parsed = isKml ? parseKml(text, fileId, defaultSys) : parseMojXml(text, fileId);
+         }
+
+         if (isWorkspaceJson) {
            if (isAppend) {
                setData(prev => {
                    const newLines = [...prev.lines, ...(parsed.lines || [])];
@@ -78,14 +98,6 @@ export function useMapData({
            }
            return;
          }
-         
-         const fileId = Math.random().toString(36).substring(2, 8);
-         let defaultSys = "auto";
-         if (isAppend && data?.coordinateSystem) {
-           defaultSys = data.coordinateSystem;
-         }
-         // Note: For future SIMA support, we'll read sysSelect here if needed
-         const parsed = isKml ? parseKml(text, fileId, defaultSys) : parseMojXml(text, fileId); 
          
          if (isAppend) {
             setData(prev => {
@@ -193,3 +205,4 @@ export function useMapData({
     handleLoadSavedData
   };
 }
+
