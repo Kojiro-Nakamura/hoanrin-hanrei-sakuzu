@@ -8,7 +8,7 @@
 
 実際に \docs/sample_data\ に同梱されているサンプルデータを使って、KMLやTIFFの読み込みからスタイルの適用までを行う自動デモ動画です。
 
-<video src="./images/tutorial.mp4" controls="controls" width="100%" style="max-width: 800px; border: 1px solid #ddd; border-radius: 8px;"></video>
+https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/tutorial.mp4
 
 *(※ 上記の動画は、AIがブラウザを自動操作して自動撮影したものです)*
 
@@ -93,4 +93,5 @@
 
 > **📸 画像の挿入:**
 > ![保存と出力](./images/export.png)
+
 
