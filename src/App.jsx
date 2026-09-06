@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import proj4 from 'proj4';
 import { UploadCloud, Maximize, AlertCircle, Loader2, Move, Globe, Layers, Download, Save, CloudDownload, Hash, Edit3, Undo, Redo, Home, Image, Settings, Trash2 } from 'lucide-react';
 
@@ -109,7 +109,15 @@ export default function App() {
       const e = svg_tl.x;
       const f = svg_tl.y;
 
-      const matrix = [a, b, c, d, e, f];
+      let m = [a, b, c, d, e, f];
+      
+      // ユーザーの要望により、デフォルトで左右反転を適用
+      const trX = m[0] * width + m[4];
+      const trY = m[1] * width + m[5];
+      m[4] = trX; m[5] = trY;
+      m[0] = -m[0]; m[1] = -m[1];
+      
+      const matrix = m;
 
       const svg_br = { x: svg_tr.x + svg_bl.x - svg_tl.x, y: svg_tr.y + svg_bl.y - svg_tl.y };
       const minX = Math.min(svg_tl.x, svg_tr.x, svg_bl.x, svg_br.x);
