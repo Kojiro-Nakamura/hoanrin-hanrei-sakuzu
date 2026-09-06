@@ -660,10 +660,13 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     
     // 大字・小字・地目のフォールバック
     for (const key in props) {
+      if (key.includes("コード")) continue; // 0000などのコード値を除外
       if (!oaza && key.includes("大字")) oaza = props[key];
       if (!koaza && key.includes("小字")) koaza = props[key];
       if (!chimoku && key.includes("地目")) chimoku = props[key];
     }
+    if (oaza === "0000") oaza = "";
+    if (koaza === "0000") koaza = "";
     chiban = String(chiban || "").trim();
 
     const geomType = feature.geometry.type;
@@ -760,6 +763,7 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     coordinateSystem: sysNum 
   };
 };
+
 
 
 
