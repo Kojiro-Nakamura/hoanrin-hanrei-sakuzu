@@ -572,6 +572,41 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
 
   const features = geojson.type === "FeatureCollection" ? geojson.features : (geojson.type === "Feature" ? [geojson] : []);
 
+  let sysNum = defaultSysNum !== "auto" ? parseInt(defaultSysNum, 10) : null;
+  let projStr = null;
+
+  if (sysNum && window.proj4) {
+    const origin = CS_ORIGINS[sysNum];
+    if (origin) {
+      projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+    }
+  }
+
+  // 最初の座標を探してsysNumを自動判定
+  if (!sysNum && window.proj4) {
+    for (let i = 0; i < features.length; i++) {
+      const f = features[i];
+      if (f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0) {
+        let coords = f.geometry.coordinates;
+        while (Array.isArray(coords[0])) {
+          coords = coords[0];
+        }
+        const lon = coords[0], lat = coords[1];
+        if (!isNaN(lon) && !isNaN(lat)) {
+          let bestSys = 1, minDist = Infinity;
+          for (const pref of CS_PREFECTURES) {
+            const dist = Math.pow(lon - pref.lon, 2) + Math.pow(lat - pref.lat, 2);
+            if (dist < minDist) { minDist = dist; bestSys = pref.sys; }
+          }
+          sysNum = bestSys;
+          const origin = CS_ORIGINS[sysNum];
+          projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+          break;
+        }
+      }
+    }
+  }
+
   const updateBounds = (x, y) => {
     if (x < minX) minX = x;
     if (x > maxX) maxX = x;
@@ -583,34 +618,67 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     if (!feature.geometry) return;
     
     const props = feature.properties || {};
-    let name = props["地番"] || props.name || props.id || "GeoJSON-" + i;
+    let chiban = props["地番"] || props.name || props.id || "GeoJSON-" + i;
     for (const key in props) {
       if (key.includes("地番") || key.includes("番")) {
-        name = props[key];
+        chiban = props[key];
         break;
       }
     }
+    chiban = String(chiban || "").trim();
 
     const geomType = feature.geometry.type;
     const coords = feature.geometry.coordinates;
 
     const processPolygonCoords = (polyCoords, polyIdx) => {
-      const outer = polyCoords[0].map(c => {
-        updateBounds(c[0], c[1]);
-        return { lat: c[1], lng: c[0] };
+      const rings = [];
+      polyCoords.forEach(ringCoords => {
+        const pts = [];
+        ringCoords.forEach(c => {
+          const lon = c[0], lat = c[1];
+          if (projStr && window.proj4) {
+            const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+            pts.push({ x: e, y: -n });
+          } else {
+            pts.push({ x: lon, y: -lat });
+          }
+        });
+        if (pts.length > 0) rings.push(pts);
       });
-      const inners = polyCoords.slice(1).map(ring => ring.map(c => {
-        updateBounds(c[0], c[1]);
-        return { lat: c[1], lng: c[0] };
-      }));
-      polyList.push({
-        id: `${prefix}${feature.id || i}-${polyIdx}`,
-        name: String(name || "").trim(),
-        outerBoundary: outer,
-        innerBoundaries: inners,
-        styles: {},
-        texts: []
-      });
+
+      if (rings.length > 0) {
+        let pathData = "";
+        rings.forEach(ring => {
+          if (ring.length > 0) {
+            pathData += `M ${ring[0].x} ${ring[0].y} ` + ring.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+            pathData += " Z ";
+          }
+        });
+
+        // bounds更新
+        rings.forEach(ring => {
+          ring.forEach(pt => updateBounds(pt.x, pt.y));
+        });
+        
+        let center = rings[0].length > 0 ? rings[0][0] : { x: 0, y: 0 };
+        try {
+          if (typeof calculatePolygonCenter === 'function') {
+             center = calculatePolygonCenter(rings);
+          }
+        } catch (e) {}
+
+        polyList.push({
+          id: `${prefix}${feature.id || i}-${polyIdx}`,
+          chiban: chiban,
+          chimoku: "",
+          oaza: "",
+          koaza: "",
+          pathData,
+          curves: null,
+          center,
+          isCustom: false
+        });
+      }
     };
 
     if (geomType === "Polygon") {
@@ -620,16 +688,25 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         processPolygonCoords(polyCoords, j);
       });
     } else if (geomType === "LineString") {
-      const points = coords.map(c => {
-        updateBounds(c[0], c[1]);
-        return { lat: c[1], lng: c[0] };
+      const pts = [];
+      coords.forEach(c => {
+        const lon = c[0], lat = c[1];
+        if (projStr && window.proj4) {
+          const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+          pts.push({ x: e, y: -n });
+        } else {
+          pts.push({ x: lon, y: -lat });
+        }
       });
-      parsedLines.push({
-        id: `${prefix}${feature.id || i}-L`,
-        points: points,
-        type: "Line",
-        name: String(name || "").trim()
-      });
+      pts.forEach(pt => updateBounds(pt.x, pt.y));
+      if (pts.length > 0) {
+        parsedLines.push({
+          id: `${prefix}${feature.id || i}-L`,
+          points: pts,
+          type: "Line",
+          name: chiban
+        });
+      }
     }
   });
 
@@ -641,6 +718,6 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     lines: parsedLines, 
     polygons: polyList, 
     boundingBox: { minX, minY, maxX, maxY }, 
-    coordinateSystem: defaultSysNum 
+    coordinateSystem: sysNum 
   };
 };

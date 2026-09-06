@@ -9,9 +9,10 @@ export const tile2lat = (y, z) => {
 };
 
 export const parsePathToRings = (pathStr) => {
+  if (!pathStr) return [];
   const rings = [];
   let currentRing = [];
-  const tokens = pathStr.trim().split(/\s+/);
+  const tokens = String(pathStr).trim().split(/\s+/);
   let i = 0;
   while (i < tokens.length) {
     const token = tokens[i];
