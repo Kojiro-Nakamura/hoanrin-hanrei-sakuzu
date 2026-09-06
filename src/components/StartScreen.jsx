@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { UploadCloud, CloudDownload, ExternalLink } from 'lucide-react';
 import { CS_ORIGINS } from '../constants';
 
@@ -27,7 +27,7 @@ export function StartScreen({
           type="file" 
           multiple 
           className="hidden" 
-          accept=".xml,.kml,.json" 
+          accept=".xml,.kml,.json,.geojson,application/geo+json" 
           onChange={e => { 
             Array.from(e.target.files).forEach(f => loadFile(f)); 
             e.target.value = ''; 
@@ -77,3 +77,4 @@ export function StartScreen({
     </div>
   );
 }
+
