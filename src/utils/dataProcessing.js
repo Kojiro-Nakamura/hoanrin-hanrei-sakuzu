@@ -1,4 +1,4 @@
-import proj4 from 'proj4';
+﻿import proj4 from 'proj4';
 import polygonClipping from 'polygon-clipping';
 import ClipperLib from 'clipper-lib';
 import { CS_ORIGINS, CS_PREFECTURES } from '../constants';
@@ -575,7 +575,7 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
   let sysNum = defaultSysNum !== "auto" ? parseInt(defaultSysNum, 10) : null;
   let projStr = null;
 
-  if (sysNum && window.proj4) {
+  if (sysNum && proj4) {
     const origin = CS_ORIGINS[sysNum];
     if (origin) {
       projStr = `+proj=tmerc +lat_0=${origin[0]} +lon_0=${origin[1]} +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
@@ -583,7 +583,7 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
   }
 
   // 最初の座標を探してsysNumを自動判定
-  if (!sysNum && window.proj4) {
+  if (!sysNum && proj4) {
     for (let i = 0; i < features.length; i++) {
       const f = features[i];
       if (f.geometry && f.geometry.coordinates && f.geometry.coordinates.length > 0) {
@@ -636,8 +636,8 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
         const pts = [];
         ringCoords.forEach(c => {
           const lon = c[0], lat = c[1];
-          if (projStr && window.proj4) {
-            const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+          if (projStr && proj4) {
+            const [e, n] = proj4('WGS84', projStr, [lon, lat]);
             pts.push({ x: e, y: -n });
           } else {
             pts.push({ x: lon, y: -lat });
@@ -691,8 +691,8 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
       const pts = [];
       coords.forEach(c => {
         const lon = c[0], lat = c[1];
-        if (projStr && window.proj4) {
-          const [e, n] = window.proj4('WGS84', projStr, [lon, lat]);
+        if (projStr && proj4) {
+          const [e, n] = proj4('WGS84', projStr, [lon, lat]);
           pts.push({ x: e, y: -n });
         } else {
           pts.push({ x: lon, y: -lat });
@@ -721,3 +721,4 @@ export const parseGeoJson = (jsonText, fileId = "", defaultSysNum = "auto") => {
     coordinateSystem: sysNum 
   };
 };
+
