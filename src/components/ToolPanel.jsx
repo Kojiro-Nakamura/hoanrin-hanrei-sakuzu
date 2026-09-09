@@ -163,14 +163,14 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
     <div className="h-1/2 p-3 flex flex-col gap-2.5 overflow-hidden">
       <div className="border border-neutral-200 rounded-lg overflow-hidden shrink-0">
         <button onClick={() => setSettingsExpanded(!settingsExpanded)} className="w-full flex items-center justify-between bg-neutral-100 hover:bg-neutral-200 p-2 text-[11px] font-bold text-neutral-700 transition-colors">
-        <span className="flex items-center gap-1.5"><Settings className="w-3.5 h-3.5" /> 共通設定 (DXF / 画面表示)</span>
+        <span className="flex items-center gap-1.5"><Settings className="w-3.5 h-3.5" /> 共通設定</span>
         {settingsExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
       </button>
       {settingsExpanded && (
         <div className="p-2.5 bg-neutral-50 flex flex-col gap-3">
           <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setSymbolScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
             <div className="flex justify-between items-center">
-              <label className="text-[11px] font-bold text-neutral-600">記号のサイズ (DXF)</label>
+              <label className="text-[11px] font-bold text-neutral-600">記号のサイズ</label>
               <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(symbolScale) ? 1.0 : symbolScale) * 100)}%</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -181,7 +181,7 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
           </div>
           <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setLabelScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
             <div className="flex justify-between items-center">
-              <label className="text-[11px] font-bold text-neutral-600">文字のサイズ (DXF)</label>
+              <label className="text-[11px] font-bold text-neutral-600">文字のサイズ</label>
               <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(labelScale) ? 1.0 : labelScale) * 100)}%</span>
             </div>
             <div className="flex items-center gap-1.5">
