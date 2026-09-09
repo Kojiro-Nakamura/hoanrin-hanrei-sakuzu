@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Paintbrush, MousePointerClick, Scissors, RefreshCw, Edit3, Trash2, Type, ChevronDown, ChevronRight, Settings, List, Info } from 'lucide-react';
 import { LINE_STYLES, DECO_PATTERNS } from '../constants';
 
-export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, decorationScale, setDecorationScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, onHoverPolygon, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
+export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGroups, freeTexts = [], onApplyStyle, onApplyMegane, onApplyChimoku, onRemoveFeature, onRemoveGroup, onRemoveFreeText, onUpdateCustomPolygon, onClearSelection, selectedLineStyle, setSelectedLineStyle, selectedDecoPattern, setSelectedDecoPattern, symbolScale, setSymbolScale, labelScale, setLabelScale, activeDeco, onDeleteActiveDeco, showLabels, setShowLabels, onHoverGroup, onHoverPolygon, freeTextType, setFreeTextType, freeText1, setFreeText1, freeText2, setFreeText2}) => {
   const combinedItems = [
     ...appliedGroups.map(g => ({ ...g, itemType: 'group' })),
     ...freeTexts.map(f => ({ ...f, itemType: 'freetext' })),
@@ -168,15 +168,26 @@ export const ToolPanel = ({ mode, setMode, selectedPolygons, polygons, appliedGr
       </button>
       {settingsExpanded && (
         <div className="p-2.5 bg-neutral-50 flex flex-col gap-3">
-          <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setDecorationScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
+          <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setSymbolScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
             <div className="flex justify-between items-center">
-              <label className="text-[11px] font-bold text-neutral-600">文字・記号のサイズ (DXF)</label>
-              <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(decorationScale) ? 1.0 : decorationScale) * 100)}%</span>
+              <label className="text-[11px] font-bold text-neutral-600">記号のサイズ (DXF)</label>
+              <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(symbolScale) ? 1.0 : symbolScale) * 100)}%</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <button onClick={() => setDecorationScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
-              <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(decorationScale) ? 1.0 : decorationScale} onChange={(e) => setDecorationScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
-              <button onClick={() => setDecorationScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
+              <button onClick={() => setSymbolScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
+              <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(symbolScale) ? 1.0 : symbolScale} onChange={(e) => setSymbolScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
+              <button onClick={() => setSymbolScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1" onWheel={(e) => { e.stopPropagation(); setLabelScale(prev => { const p = isNaN(prev) ? 1.0 : prev; return Math.max(0.2, Math.min(2.5, Math.round((p + (e.deltaY > 0 ? -0.1 : 0.1)) * 10) / 10)); }); }}>
+            <div className="flex justify-between items-center">
+              <label className="text-[11px] font-bold text-neutral-600">文字のサイズ (DXF)</label>
+              <span className="text-[11px] text-neutral-600 font-bold">{Math.round((isNaN(labelScale) ? 1.0 : labelScale) * 100)}%</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button onClick={() => setLabelScale(p => Math.max(0.2, Math.round(((isNaN(p) ? 1.0 : p) - 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">-</button>
+              <input type="range" min="0.2" max="2.5" step="0.1" value={isNaN(labelScale) ? 1.0 : labelScale} onChange={(e) => setLabelScale(parseFloat(e.target.value) || 1.0)} className="w-full h-2 bg-neutral-200 rounded-lg cursor-pointer accent-indigo-600 outline-none" title="ホイールでもサイズを調整できます" />
+              <button onClick={() => setLabelScale(p => Math.min(2.5, Math.round(((isNaN(p) ? 1.0 : p) + 0.1) * 10) / 10))} className="w-5 h-5 flex items-center justify-center bg-white border border-neutral-300 rounded text-neutral-600 hover:bg-neutral-100 hover:border-neutral-400 transition-colors shadow-sm shrink-0 font-bold leading-none">+</button>
             </div>
           </div>
           

@@ -4,7 +4,7 @@ import { dxfCreateText, dxfCreateCircle, dxfCreateInsert, dxfCreateSolid, dxfCre
 import { parsePathToRings, calculatePolygonCenter } from '../utils/geometry';
 
 export function useExportDXF({
-  currentFreeTexts, currentPolygons, currentAppliedGroups, lines, viewBox, baseW, fileInfo, decorationScale, regionLabels, currentChibanOverrides }) {
+  currentFreeTexts, currentPolygons, currentAppliedGroups, lines, viewBox, baseW, fileInfo, labelScale, regionLabels, currentChibanOverrides }) {
   const exportToDXF = useCallback(() => {
     const EXPORT_SCALE = 1000.0;
     const extMinX = viewBox.x * EXPORT_SCALE;
@@ -120,7 +120,7 @@ export function useExportDXF({
           if (override.visible !== false) {
              const labelBlockName = `LABEL_BLOCK_${idx}`;
              
-             const fSize = (baseW / 150) * decorationScale * 0.72 * (override.scale ?? 1.0);
+             const fSize = (baseW / 150) * labelScale * 0.72 * (override.scale ?? 1.0);
              const finalCx = poly.center.x + (override.dx || 0), finalCy = poly.center.y + (override.dy || 0);
              const insertCx = finalCx, insertCy = finalCy;
              
@@ -201,7 +201,7 @@ export function useExportDXF({
 
       if (!region.visible) return;
       const text = region.text;
-      const fSize = (baseW / 150) * decorationScale * 0.72 * 1.5 * region.scale;
+      const fSize = (baseW / 150) * labelScale * 0.72 * 1.5 * region.scale;
       const rectW = text.length * fSize + fSize;
       const rectH = fSize * 1.5;
       
@@ -272,7 +272,7 @@ export function useExportDXF({
       const url = URL.createObjectURL(blob), a = document.createElement("a");
     a.href = url; a.download = (fileInfo?.name ? fileInfo.name.replace(".xml", "") : "export") + "_map.dxf";
     document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
-  }, [currentPolygons, currentAppliedGroups, lines, viewBox.w, fileInfo, decorationScale, regionLabels, currentChibanOverrides]);
+  }, [currentPolygons, currentAppliedGroups, lines, viewBox.w, fileInfo, labelScale, regionLabels, currentChibanOverrides]);
 
   return { exportToDXF };
 }

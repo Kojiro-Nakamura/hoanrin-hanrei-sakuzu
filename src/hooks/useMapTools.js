@@ -10,7 +10,7 @@ export function useMapTools({
   selectedPolygons,
   setSelectedPolygons,
   commitChange,
-  decorationScale,
+  symbolScale,
   setError
 }) {
 
@@ -20,7 +20,7 @@ export function useMapTools({
     const exteriorPath = extractExteriorPath(targetPolygons), chibanList = targetPolygons.map(p => p.chiban).join(', ');
     const patternInfo = DECO_PATTERNS.find(p => p.id === decoPatternId), pattern = patternInfo ? patternInfo.pattern : null;
     
-    const effScale = decorationScale * 0.72;
+    const effScale = symbolScale * 0.72;
     let interval = 5.0 * effScale, size = 0.8 * effScale, higeLength = 1.5 * effScale;
 
     if (pattern === 'circle') size = 0.7 * effScale;
@@ -126,14 +126,14 @@ export function useMapTools({
           }
           let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
           if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
-          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 });
+          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 0.72 });
        }
     });
 
     if (newDecorations.length === 0) { setError("選択された図形間に明確な共有境界線が見つかりませんでした。"); return; }
     commitChange(currentPolygons, [...currentAppliedGroups, { id: 'grp_' + Date.now(), polygonIds: [...selectedPolygons], chibanList: targetPolygons.map(p => p.chiban).join(', '), lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null, decorations: newDecorations }]);
     setSelectedPolygons([]); 
-  }, [selectedPolygons, currentPolygons, currentAppliedGroups, commitChange, decorationScale]);
+  }, [selectedPolygons, currentPolygons, currentAppliedGroups, commitChange, symbolScale]);
 
   const handleApplyChimoku = useCallback((chimoku) => {
     if (selectedPolygons.length === 0) return;

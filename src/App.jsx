@@ -157,7 +157,8 @@ export default function App() {
     }
   };
 
-  const [decorationScale, setDecorationScale] = useState(1.0);
+  const [symbolScale, setSymbolScale] = useState(1.0);
+  const [labelScale, setLabelScale] = useState(1.0);
   const [freeTextType, setFreeTextType] = useState('general');
   const [freeText1, setFreeText1] = useState('');
   const [freeText2, setFreeText2] = useState('');
@@ -214,7 +215,7 @@ export default function App() {
     handleApplyStyle, handleApplyMegane, handleApplyChimoku, handleRemoveFeatures, handleRemoveGroup, handleUpdateCustomPolygon, regionLabels
   } = useMapTools({
     currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides,
-    selectedPolygons, setSelectedPolygons, selectedLineStyle, selectedDecoPattern, decorationScale, mode,
+    selectedPolygons, setSelectedPolygons, selectedLineStyle, selectedDecoPattern, symbolScale, mode,
     commitChange, setError
   });
 
@@ -232,7 +233,7 @@ export default function App() {
   }, [bgImages, combinedBoundingBox, fitToBoundingBox]);
 
   const { exportToDXF } = useExportDXF({
-    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, baseW, fileInfo: data.fileInfo, decorationScale, regionLabels, currentChibanOverrides, currentFreeTexts
+    currentPolygons, currentAppliedGroups, lines: data.lines, viewBox, baseW, fileInfo: data.fileInfo, labelScale, regionLabels, currentChibanOverrides, currentFreeTexts
   });
 
   const exportToJSON = useCallback(() => {
@@ -340,7 +341,7 @@ export default function App() {
             polygonIds: res.newPolys.map(p => p.id),
             chibanList: res.newPolys.map(p => p.chiban).filter(Boolean).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 0.72 }]
           });
         });
         // Since we split successfully, don't add the line itself
@@ -374,7 +375,7 @@ export default function App() {
             polygonIds: [res.newPoly.id, newPoly.id],
             chibanList: [res.newPoly.chiban, newPoly.chiban].filter((v, i, a) => v && a.indexOf(v) === i).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 0.72 }]
           });
         });
       }
@@ -386,7 +387,7 @@ export default function App() {
     lastDrawRef.current = Date.now();
     setDrawingPts([]);
     setSnappedPt(null);
-  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons, viewBox, decorationScale]);
+  }, [drawingPts, currentPolygons, currentAppliedGroups, commitChange, setMode, setSelectedPolygons, viewBox, symbolScale]);
 
   const handleDecoMouseDown = useCallback((e, groupId, deco, dragMode) => {
     const pt = getSvgPoint(e);
@@ -631,7 +632,7 @@ export default function App() {
             text2: freeText2,
             cx: pt.x,
             cy: pt.y,
-            scale: decorationScale
+            scale: symbolScale
           };
           commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, [...(currentFreeTexts||[]), newText]);
         }
@@ -736,7 +737,7 @@ export default function App() {
   }, [mode, finishDrawing, handleUndo, handleRedo, selectedDeco, currentAppliedGroups, selectedPolygons, handleRemoveFeatures, currentRegionOverrides, currentChibanOverrides, currentPolygons, commitChange, handleDeleteActiveDeco]);
 
   const hasData = data.lines.length > 0 || history.length > 0;
-  const labelFontSize = (baseW / 150) * decorationScale * 0.72;
+  const labelFontSize = (baseW / 150) * labelScale * 0.72;
   const isTiffColor = showBgImages && bgImages.length > 0 && bgImages[bgImages.length - 1].isColor;
   const strokeColor = showMap ? (mapType === 'seamlessphoto' ? "#ffff00" : mapType === 'std' ? "#dc2626" : "#ef4444") : (isTiffColor ? "#ffff00" : "#2563eb");
   const baseLinePath = useMemo(() => data.lines.map(line => `M ${line[0].x} ${line[0].y} ` + line.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')).join(' '), [data.lines]);
@@ -1025,7 +1026,7 @@ export default function App() {
               freeTexts={currentFreeTexts}
               onApplyStyle={handleApplyStyle} onApplyMegane={handleApplyMegane} onApplyChimoku={handleApplyChimoku}
               onRemoveFeature={handleRemoveFeatures} onRemoveGroup={handleRemoveGroup} onRemoveFreeText={handleRemoveFreeText} onUpdateCustomPolygon={handleUpdateCustomPolygon} onClearSelection={() => setSelectedPolygons([])} 
-              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} decorationScale={decorationScale} setDecorationScale={setDecorationScale}
+              selectedLineStyle={selectedLineStyle} setSelectedLineStyle={setSelectedLineStyle} selectedDecoPattern={selectedDecoPattern} setSelectedDecoPattern={setSelectedDecoPattern} symbolScale={symbolScale} setSymbolScale={setSymbolScale} labelScale={labelScale} setLabelScale={setLabelScale}
               activeDeco={selectedDeco} onDeleteActiveDeco={handleDeleteActiveDeco} showLabels={showLabels} setShowLabels={setShowLabels}
               onHoverGroup={setHoveredGroupId} onHoverPolygon={setHoveredPolygon} freeTextType={freeTextType} setFreeTextType={setFreeTextType} freeText1={freeText1} setFreeText1={setFreeText1} freeText2={freeText2} setFreeText2={setFreeText2} />
 
