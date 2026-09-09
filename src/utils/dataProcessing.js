@@ -1,4 +1,4 @@
-﻿import proj4 from 'proj4';
+import proj4 from 'proj4';
 import polygonClipping from 'polygon-clipping';
 import ClipperLib from 'clipper-lib';
 import { CS_ORIGINS, CS_PREFECTURES } from '../constants';
@@ -245,24 +245,7 @@ export const extractExteriorPath = (targetPolygons) => {
   if (targetPolygons.length === 0) return "";
   if (targetPolygons.length === 1) return targetPolygons[0].pathData;
   
-  if (window.polygonClipping) {
-    try {
-      const polys = targetPolygons.map(p => {
-        const rings = parsePathToRings(p.pathData).map(r => r.map(pt => [pt.x, pt.y]));
-        rings.forEach(r => {
-          if (r.length > 0) {
-            const first = r[0], last = r[r.length - 1];
-            if (first[0] !== last[0] || first[1] !== last[1]) r.push([first[0], first[1]]);
-          }
-        });
-        return [rings];
-      });
-      const unionResult = window.polygonClipping.union(...polys);
-      if (unionResult && unionResult.length > 0) {
-        return multiPolyToPath(unionResult);
-      }
-    } catch (e) { console.warn("Polygon union failed", e); }
-  }
+
 
   const edgeCountMap = new Map(), edgePointsMap = new Map();
   const formatPt = (pt) => `${Math.round(pt.x * 1000)},${Math.round(pt.y * 1000)}`;
@@ -289,25 +272,16 @@ export const extractExteriorPath = (targetPolygons) => {
   });
 
   let exteriorPath = "";
-  targetPolygons.forEach(p => {
-    if (!p.curves) {
-      const rings = parsePathToRings(p.pathData);
-      rings.forEach(ring => {
-        const extRing = [];
-        for (let i = 0; i < ring.length - 1; i++) {
-          const str1 = formatPt(ring[i]), str2 = formatPt(ring[i + 1]), key = str1 < str2 ? `${str1}_${str2}` : `${str2}_${str1}`;
-          if (edgeCountMap.get(key) === 1) {
-            if (extRing.length === 0 || extRing[extRing.length - 1].x !== ring[i].x || extRing[extRing.length - 1].y !== ring[i].y) {
-              extRing.push(ring[i]);
-            }
-            extRing.push(ring[i + 1]);
-          }
-        }
-        if (extRing.length > 0) exteriorPath += "M " + extRing.map(pt => `${pt.x} ${pt.y}`).join(" L ") + " Z ";
-      });
+
+  const segmentsList = [];
+  edgeCountMap.forEach((count, key) => {
+    if (count % 2 === 1) { // count === 1 or 3 (though usually 1)
+      segmentsList.push(edgePointsMap.get(key));
     }
   });
-  return exteriorPath;
+  
+  const fallbackPath = buildConnectedPath(segmentsList);
+  return fallbackPath || "";
 };
 
 export const parseMojXml = (xmlText, fileId = "") => {
