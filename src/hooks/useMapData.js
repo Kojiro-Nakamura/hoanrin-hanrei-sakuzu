@@ -41,9 +41,16 @@ export function useMapData({
          const buf = e.target.result;
          const uint8 = new Uint8Array(buf);
          const headStr = new TextDecoder('ascii').decode(uint8.slice(0, 200));
-         let encoding = 'Shift_JIS';
-         if (headStr.toLowerCase().includes('utf-8') || isJson) encoding = 'utf-8';
-         const text = new TextDecoder(encoding).decode(uint8);
+         let text = "";
+         try {
+           if (headStr.toLowerCase().includes('shift_jis')) {
+             text = new TextDecoder('Shift_JIS').decode(uint8);
+           } else {
+             text = new TextDecoder('utf-8', { fatal: true }).decode(uint8);
+           }
+         } catch (err) {
+           text = new TextDecoder('Shift_JIS').decode(uint8);
+         }
          
          const fileId = Math.random().toString(36).substring(2, 8);
          let defaultSys = "auto";
@@ -205,4 +212,5 @@ export function useMapData({
     handleLoadSavedData
   };
 }
+
 
