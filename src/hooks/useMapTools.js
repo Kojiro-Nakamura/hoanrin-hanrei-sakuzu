@@ -20,7 +20,7 @@ export function useMapTools({
     const exteriorPath = extractExteriorPath(targetPolygons), chibanList = targetPolygons.map(p => p.chiban).join(', ');
     const patternInfo = DECO_PATTERNS.find(p => p.id === decoPatternId), pattern = patternInfo ? patternInfo.pattern : null;
     
-    const effScale = decorationScale * 1.2;
+    const effScale = decorationScale * 0.72;
     let interval = 5.0 * effScale, size = 0.8 * effScale, higeLength = 1.5 * effScale;
 
     if (pattern === 'circle') size = 0.7 * effScale;
@@ -126,7 +126,7 @@ export function useMapTools({
           }
           let angleDeg = Math.atan2(dy, dx) * 180 / Math.PI + 90;
           if (angleDeg > 90 || angleDeg <= -90) angleDeg += 180;
-          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 1.0 });
+          newDecorations.push({ id: `dec_${Date.now()}_${meganeCount++}`, type: 'megane', cx, cy, angle: angleDeg, scale: decorationScale * 0.72 });
        }
     });
 
