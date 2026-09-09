@@ -341,7 +341,7 @@ export default function App() {
             polygonIds: res.newPolys.map(p => p.id),
             chibanList: res.newPolys.map(p => p.chiban).filter(Boolean).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 0.72 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 1.8 }]
           });
         });
         // Since we split successfully, don't add the line itself
@@ -375,7 +375,7 @@ export default function App() {
             polygonIds: [res.newPoly.id, newPoly.id],
             chibanList: [res.newPoly.chiban, newPoly.chiban].filter((v, i, a) => v && a.indexOf(v) === i).join(', '),
             lineStyleId: 'none', decoPatternId: 'megane', pathData: "", innerPathData: null, innerPathData2: null,
-            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 0.72 }]
+            decorations: [{ id: `dec_${Date.now()}_0`, type: 'megane', cx, cy, angle: angleDeg, scale: symbolScale * 1.8 }]
           });
         });
       }
@@ -632,7 +632,7 @@ export default function App() {
             text2: freeText2,
             cx: pt.x,
             cy: pt.y,
-            scale: symbolScale
+            scale: labelScale
           };
           commitChange(currentPolygons, currentAppliedGroups, currentRegionOverrides, currentChibanOverrides, [...(currentFreeTexts||[]), newText]);
         }
