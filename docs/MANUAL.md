@@ -19,7 +19,7 @@
 
 ## 2. 凡例（スタイル）の適用
 読み込んだ図形（ポリゴン）に対して、保安林の種別に応じて〇や×やヒゲ、線種などを設定します。
-(https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/blob/master/docs/images/style_apply.png)
+
 ![凡例の適用](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/style_apply.png)
 
 1. 右パネルの上部タブから **「↖️ 選択」** を選択します。
