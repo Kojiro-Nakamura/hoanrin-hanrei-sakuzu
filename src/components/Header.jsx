@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Map as MapIcon, Home, Download, UploadCloud, Undo, Redo } from 'lucide-react';
 
 export const Header = ({ fileInfo, coordinateSystem, onReset, onExportDXF, onExportJSON, onLoadFile, onLoadTiffZip, onUndo, onRedo, canUndo, canRedo }) => (

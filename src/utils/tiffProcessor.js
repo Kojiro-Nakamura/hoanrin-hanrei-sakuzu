@@ -3,7 +3,12 @@ import UTIF from 'utif';
 
 export async function parseTiffZip(file) {
   const zip = new JSZip();
-  const loadedZip = await zip.loadAsync(file);
+  let loadedZip;
+  try {
+    loadedZip = await zip.loadAsync(file);
+  } catch (err) {
+    throw new Error("ZIPファイルとして読み込めませんでした。TIFF画像とTFWファイルをZIP形式にまとめてからアップロードしてください。");
+  }
 
   let tifFile = null;
   let tfwFile = null;
