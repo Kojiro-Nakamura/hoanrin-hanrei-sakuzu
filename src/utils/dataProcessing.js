@@ -123,7 +123,7 @@ export const generateOffsetRings = (pathStr, offset, ringsOverride = null) => {
 
     const isHole = area !== 0 && Math.sign(area) !== mainSign;
     const isCW = area !== 0 ? area > 0 : true;
-    const normalSign = isHole ? -1 : 1;
+    const normalSign = 1; // isCW automatically handles the normal direction for holes
 
     if (isClosed) {
       const scale = 100000;
@@ -168,7 +168,7 @@ export const generateDecorations = (pathStr, interval, size, tickLength, pattern
 
     const isHole = area !== 0 && Math.sign(area) !== mainSign;
     const isCW = area !== 0 ? area > 0 : true;
-    const normalSign = isHole ? -1 : 1;
+    const normalSign = 1; // isCW automatically handles the normal direction for holes
 
     const points = samplePath(cleanRing, interval, isClosed, isCW, normalSign);
     
