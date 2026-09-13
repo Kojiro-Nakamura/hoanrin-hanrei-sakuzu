@@ -32,7 +32,7 @@
 ## 3. 作図モード（図形の分割、ポリゴン追加）
 大きな図形を直線で分割したり、新たなポリゴンを作成したい場合は「作図モード」を使います。
 
-![作図モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/draw_mode.png)
+![作図モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add-sakuzu.webp)
 
 1. 右パネル上部のタブから **「✂️ 作図」** を選択します。
 2. 地図上で分割の始点となる場所をクリックします。（既存の頂点に近づけると自動で吸着します）
