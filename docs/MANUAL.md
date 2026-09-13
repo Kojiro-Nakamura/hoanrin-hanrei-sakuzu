@@ -7,7 +7,7 @@
 ## 1. データの読み込み
 まずは、ベースとなる図面データをアプリに読み込みます。
 
-![凡例の適用](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add-tiff.webp)
+![データの読読み込み](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add-tiff.webp)
 
 1. 画面上部の **「ファイルを選択」** ボタンをクリックします。
 2. 対象となるファイルを選択します。
