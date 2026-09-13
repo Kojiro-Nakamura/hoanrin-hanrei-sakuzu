@@ -55,7 +55,7 @@
 ## 5. 文字追加モード
 地図上に地番や大字名などのテキスト情報を配置します。
 
-![文字追加モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add_text.png)
+![文字追加モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add-text.webp)
 
 1. 右パネル上部のタブから **「T 文字追加」** を選択します。
 2. 配置したい文字の種類（字・一般、地目＋地番）を選択し、入力欄に文字を入力します。
