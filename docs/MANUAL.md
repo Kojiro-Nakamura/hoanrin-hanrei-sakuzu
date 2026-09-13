@@ -21,6 +21,7 @@
 読み込んだ図形（ポリゴン）に対して、保安林の種別に応じて〇や×やヒゲ、線種などを設定します。
 
 ![凡例の適用](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/style_apply.png)
+![凡例の適用](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/add-sousyoku.webp)
 
 1. 右パネルの上部タブから **「↖️ 選択」** を選択します。
 2. 右側のパネルから、適用したい凡例（例：「二重線、〇・△交互」など）をクリックして選択します。
