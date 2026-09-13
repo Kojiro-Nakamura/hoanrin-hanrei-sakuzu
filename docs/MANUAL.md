@@ -44,7 +44,7 @@
 ## 4. 装飾調整モード（装飾や文字の移動・削除）
 配置した装飾・文字の位置や大きさを微調整したり、不要になった装飾・文字を削除したりするモードです。
 
-![装飾調整モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/edit_deco.png)
+![装飾調整モード](https://github.com/Kojiro-Nakamura/hoanrin-hanrei-sakuzu/raw/master/docs/images/sousyoku-chousei.webp)
 
 1. 右パネル上部のタブから **「🔄 装飾調整」** を選択します。
 2. **移動する:** 地図上の文字・装飾をドラッグすると、好きな位置に動かすことができます。
