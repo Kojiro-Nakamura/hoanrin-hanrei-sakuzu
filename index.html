@@ -1,19 +1,21 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google" content="notranslate" />
+    <meta translate="no" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>保安林凡例作図</title>
+    <title>保安林凡例作図ツール</title>
   </head>
   <body>
     <div id="root"></div>
     <script>
       window.onerror = function(message, source, lineno, colno, error) {
-        const div = document.createElement('div');
-        div.style.position = 'fixed'; div.style.top = '0'; div.style.left = '0';
-        div.style.background = 'red'; div.style.color = 'white'; div.style.zIndex = '9999';
-        div.style.padding = '10px'; div.innerHTML = 'ERROR: ' + message + '<br>' + (error && error.stack);
+        const div = document.createElement("div");
+        div.style.position = "fixed"; div.style.top = "0"; div.style.left = "0";
+        div.style.background = "red"; div.style.color = "white"; div.style.zIndex = "9999";
+        div.style.padding = "10px"; div.innerHTML = "ERROR: " + message + "<br>" + (error && error.stack);
         document.body.appendChild(div);
       };
     </script>
